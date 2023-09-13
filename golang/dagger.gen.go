@@ -3629,7 +3629,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 			return (*Golang).Base(&parent, ctx, version)
 		case "":
 			var err error
-			var typeDefBytes []byte = []byte("{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"version\",\"typeDef\":{\"kind\":\"StringKind\"}}],\"name\":\"Base\",\"returnType\":{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"ctr\",\"typeDef\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"Test\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Golang\"},\"kind\":\"ObjectKind\"}")
+			var typeDefBytes []byte = []byte("{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"version\",\"typeDef\":{\"kind\":\"StringKind\"}}],\"name\":\"Base\",\"returnType\":{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoBuild\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"args\":[{\"name\":\"ctr\",\"typeDef\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoTest\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Golang\"},\"kind\":\"ObjectKind\"}")
 			var typeDef TypeDefInput
 			err = json.Unmarshal(typeDefBytes, &typeDef)
 			if err != nil {
@@ -3646,9 +3646,22 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 		}
 	case "Container":
 		switch fnName {
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		case "Test":
+		case "GoBuild":
+			var err error
+			var parent Container
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var args []string
+			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Container).GoBuild(&parent, ctx, args)
+		case "GoTest":
 			var err error
 			var parent Container
 			err = json.Unmarshal(parentJSON, &parent)
@@ -3668,7 +3681,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				fmt.Println(err.Error())
 				os.Exit(2)
 			}
-			return (*Container).Test(&parent, ctx, &ctr, args)
+			return (*Container).GoTest(&parent, ctx, &ctr, args)
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
