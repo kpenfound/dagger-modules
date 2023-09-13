@@ -21,7 +21,7 @@ func (c *Container) GoBuild(ctx context.Context, args []string) (*Container, err
 	return c.WithExec(command).Sync(ctx)
 }
 
-func (c *Container) GoTest(ctx context.Context, ctr *Container, args []string) (*Container, error) {
+func (c *Container) GoTest(ctx context.Context, args []string) (*Container, error) {
 	command := append([]string{"go", "test"}, args...)
 	return c.WithExec(command).Sync(ctx)
 }
