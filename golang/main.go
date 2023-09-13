@@ -7,9 +7,13 @@ import (
 
 type Golang struct {}
 
-func (m *Golang) Base(ctx context.Context, version string) (*Container, error) {
+func (m *Golang) Base(ctx context.Context, version string) (*Container) {
+	cache := dag.CacheVolume("gomodcache")
 	image := fmt.Sprintf("golang:%s", version)
-	return dag.Container().From(image)
+	return dag.Container().
+	From(image).
+	WithMountedCache("/gomodcache", cache).
+	WithEnvironmentVariable("GOMODCACHE", "/gomodcache")
 }
 
 func (c *Container) Build(ctx context.Context, args []string) (*Container, error) {

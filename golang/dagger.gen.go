@@ -3610,34 +3610,6 @@ func main() {
 
 func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName string, inputArgs map[string][]byte) (any, error) {
 	switch parentName {
-	case "Container":
-		switch fnName {
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		case "Test":
-			var err error
-			var parent Container
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var ctr Container
-			err = json.Unmarshal([]byte(inputArgs["ctr"]), &ctr)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var args []string
-			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Container).Test(&parent, ctx, &ctr, args)
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		}
 	case "Golang":
 		switch fnName {
 		case "Base":
@@ -3669,6 +3641,34 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				mod = mod.WithFunction(dag.NewFunction(fnDef))
 			}
 			return mod, nil
+		default:
+			return nil, fmt.Errorf("unknown function %s", fnName)
+		}
+	case "Container":
+		switch fnName {
+		default:
+			return nil, fmt.Errorf("unknown function %s", fnName)
+		case "Test":
+			var err error
+			var parent Container
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var ctr Container
+			err = json.Unmarshal([]byte(inputArgs["ctr"]), &ctr)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var args []string
+			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Container).Test(&parent, ctx, &ctr, args)
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
