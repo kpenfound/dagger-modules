@@ -26,11 +26,11 @@ func (c *Container) GoTest(ctx context.Context, ctr *Container, args []string) (
 	return c.WithExec(command).Sync(ctx)
 }
 
-func (d *Directory) GoLint(ctx context.Context) (string, error) {
-	return dag.Container().From("golangci/golangci-lint:v1.48").
-		WithMountedDirectory("/src", d).
-		WithWorkdir("/src").
-		WithExec([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}).
-		Stdout(ctx)
-}
+//func (d *Directory) GoLint(ctx context.Context) (string, error) {
+//	return dag.Container().From("golangci/golangci-lint:v1.48").
+//		WithMountedDirectory("/src", d).
+//		WithWorkdir("/src").
+//		WithExec([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}).
+//		Stdout(ctx)
+//}
 

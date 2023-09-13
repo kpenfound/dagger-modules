@@ -28,24 +28,22 @@ type DirectoryID string
 // A file identifier.
 type FileID string
 
-type FunctionID string
-
-type JSON string
-
-type ModuleID string
-
 // The platform config OS and architecture in a Container.
 //
 // The format is [os]/[platform]/[version] (e.g., "darwin/arm64/v7", "windows/amd64", "linux/arm64").
 type Platform string
+
+// A unique project command identifier.
+type ProjectCommandID string
+
+// A unique project identifier.
+type ProjectID string
 
 // A unique identifier for a secret.
 type SecretID string
 
 // A content-addressed socket identifier.
 type SocketID string
-
-type Void string
 
 // Key value object that represents a build argument.
 type BuildArg struct {
@@ -56,82 +54,6 @@ type BuildArg struct {
 	Value string `json:"value,omitempty"`
 }
 
-// A definition of a field on a custom object defined in a Module.
-// A field on an object has a static value, as opposed to a function on an
-// object whose value is computed by invoking code (and can accept arguments).
-type FieldTypeDefInput struct {
-	// A doc string for the field, if any
-	Description string `json:"description,omitempty"`
-
-	// The name of the field in the object
-	Name string `json:"name,omitempty"`
-
-	// The type of the field
-	TypeDef *TypeDefInput `json:"typeDef,omitempty"`
-}
-
-type FunctionArgDef struct {
-	// A default value to use for this argument if not explicitly set by the caller, if any
-	DefaultValue JSON `json:"defaultValue,omitempty"`
-
-	// A doc string for the argument, if any
-	Description string `json:"description,omitempty"`
-
-	// The name of the argument
-	Name string `json:"name,omitempty"`
-
-	// The type of the argument
-	TypeDef *TypeDefInput `json:"typeDef,omitempty"`
-}
-
-type FunctionCallInput struct {
-	// The name of the argument to the function
-	Name string `json:"name,omitempty"`
-
-	// The value of the argument to the function, representing as a JSON-serialized string.
-	Value JSON `json:"value,omitempty"`
-}
-
-type FunctionDef struct {
-	// Arguments accepted by this function, if any
-	Args []*FunctionArgDef `json:"args,omitempty"`
-
-	// A doc string for the function, if any
-	Description string `json:"description,omitempty"`
-
-	// The name of the function
-	Name string `json:"name,omitempty"`
-
-	// The type returned by this function
-	ReturnType *TypeDefInput `json:"returnType,omitempty"`
-}
-
-type ListTypeDefInput struct {
-	// The type of the elements in the list
-	ElementTypeDef *TypeDefInput `json:"elementTypeDef,omitempty"`
-}
-
-type ModuleEnvironmentVariable struct {
-	Name string `json:"name,omitempty"`
-
-	Value string `json:"value,omitempty"`
-}
-
-// A definition of a custom object defined in a Module.
-type ObjectTypeDefInput struct {
-	// The doc string for the object, if any
-	Description string `json:"description,omitempty"`
-
-	// Static fields defined on this object, if any
-	Fields []*FieldTypeDefInput `json:"fields,omitempty"`
-
-	// Functions defined on this object, if any
-	Functions []*FunctionDef `json:"functions,omitempty"`
-
-	// The name of the object
-	Name string `json:"name,omitempty"`
-}
-
 // Key value object that represents a Pipeline label.
 type PipelineLabel struct {
 	// Label name.
@@ -139,23 +61,6 @@ type PipelineLabel struct {
 
 	// Label value.
 	Value string `json:"value,omitempty"`
-}
-
-// A definition of a type used in a Module as an argument, return type or object field.
-type TypeDefInput struct {
-	// If kind is LIST, the list-specific type definition.
-	// If kind is not LIST, this will be null."
-	AsList *ListTypeDefInput `json:"asList,omitempty"`
-
-	// If kind is OBJECT, the object-specific type definition.
-	// If kind is not OBJECT, this will be null."
-	AsObject *ObjectTypeDefInput `json:"asObject,omitempty"`
-
-	// The kind of type this is (e.g. primitive, list, object)
-	Kind TypeDefKind `json:"kind,omitempty"`
-
-	// Whether this type can be set to null
-	Optional bool `json:"optional,omitempty"`
 }
 
 // A directory whose contents persist across runs.
@@ -1193,11 +1098,6 @@ type ContainerWithMountedSecretOpts struct {
 	//
 	// If the group is omitted, it defaults to the same as the user.
 	Owner string
-	// Permission given to the mounted secret (e.g., 0600).
-	// This option requires an owner to be set to be active.
-	//
-	// Default: 0400.
-	Mode int
 }
 
 // Retrieves this container plus a secret mounted into a file at the given path.
@@ -1207,10 +1107,6 @@ func (r *Container) WithMountedSecret(path string, source *Secret, opts ...Conta
 		// `owner` optional argument
 		if !querybuilder.IsZeroValue(opts[i].Owner) {
 			q = q.Arg("owner", opts[i].Owner)
-		}
-		// `mode` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Mode) {
-			q = q.Arg("mode", opts[i].Mode)
 		}
 	}
 	q = q.Arg("path", path)
@@ -1503,36 +1399,6 @@ type WithDirectoryFunc func(r *Directory) *Directory
 // This is useful for reusability and readability by not breaking the calling chain.
 func (r *Directory) With(f WithDirectoryFunc) *Directory {
 	return f(r)
-}
-
-// DirectoryAsModuleOpts contains options for Directory.AsModule
-type DirectoryAsModuleOpts struct {
-	SourceSubpath string
-}
-
-// Load the directory as a Dagger module
-//
-// sourceSubpath is an optional parameter that, if set, points to a subpath of this
-// directory that contains the module's source code. This is needed when the module
-// code is in a subdirectory but requires parent directories to be loaded in order
-// to execute. For example, the module source code may need a go.mod, project.toml,
-// package.json, etc. file from a parent directory.
-//
-// If sourceSubpath is not set, the module source code is loaded from the root of
-// the directory.
-func (r *Directory) AsModule(opts ...DirectoryAsModuleOpts) *Module {
-	q := r.q.Select("asModule")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `sourceSubpath` optional argument
-		if !querybuilder.IsZeroValue(opts[i].SourceSubpath) {
-			q = q.Arg("sourceSubpath", opts[i].SourceSubpath)
-		}
-	}
-
-	return &Module{
-		q: q,
-		c: r.c,
-	}
 }
 
 // Gets the difference between this directory and an another directory.
@@ -1918,53 +1784,6 @@ func (r *EnvVariable) Value(ctx context.Context) (string, error) {
 	return response, q.Execute(ctx, r.c)
 }
 
-// A definition of a field on a custom object defined in a Module.
-// A field on an object has a static value, as opposed to a function on an
-// object whose value is computed by invoking code (and can accept arguments).
-type FieldTypeDef struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	description *string
-	name        *string
-}
-
-// A doc string for the field, if any
-func (r *FieldTypeDef) Description(ctx context.Context) (string, error) {
-	if r.description != nil {
-		return *r.description, nil
-	}
-	q := r.q.Select("description")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The name of the field in the object
-func (r *FieldTypeDef) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The type of the field
-func (r *FieldTypeDef) TypeDef() *TypeDef {
-	q := r.q.Select("typeDef")
-
-	return &TypeDef{
-		q: q,
-		c: r.c,
-	}
-}
-
 // A file.
 type File struct {
 	q *querybuilder.Selection
@@ -2105,355 +1924,6 @@ func (r *File) WithTimestamps(timestamp int) *File {
 		q: q,
 		c: r.c,
 	}
-}
-
-type Function struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	call        *JSON
-	description *string
-	id          *FunctionID
-	name        *string
-}
-
-// Arguments accepted by this function, if any
-func (r *Function) Args(ctx context.Context) ([]FunctionArg, error) {
-	q := r.q.Select("args")
-
-	q = q.Select("defaultValue description name")
-
-	type args struct {
-		DefaultValue JSON
-		Description  string
-		Name         string
-	}
-
-	convert := func(fields []args) []FunctionArg {
-		out := []FunctionArg{}
-
-		for i := range fields {
-			out = append(out, FunctionArg{defaultValue: &fields[i].DefaultValue, description: &fields[i].Description, name: &fields[i].Name})
-		}
-
-		return out
-	}
-	var response []args
-
-	q = q.Bind(&response)
-
-	err := q.Execute(ctx, r.c)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert(response), nil
-}
-
-// FunctionCallOpts contains options for Function.Call
-type FunctionCallOpts struct {
-	Input []*FunctionCallInput
-}
-
-// Execute this function using dynamic input+output types.
-//
-// Typically, it's preferable to invoke a function using a type
-// safe graphql query rather than using this call field. However,
-// call is useful for some advanced use cases where dynamically
-// loading arbitrary modules and invoking functions in them is
-// required.
-func (r *Function) Call(ctx context.Context, opts ...FunctionCallOpts) (JSON, error) {
-	if r.call != nil {
-		return *r.call, nil
-	}
-	q := r.q.Select("call")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `input` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Input) {
-			q = q.Arg("input", opts[i].Input)
-		}
-	}
-
-	var response JSON
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// A doc string for the function, if any
-func (r *Function) Description(ctx context.Context) (string, error) {
-	if r.description != nil {
-		return *r.description, nil
-	}
-	q := r.q.Select("description")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-func (r *Function) ID(ctx context.Context) (FunctionID, error) {
-	if r.id != nil {
-		return *r.id, nil
-	}
-	q := r.q.Select("id")
-
-	var response FunctionID
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// XXX_GraphQLType is an internal function. It returns the native GraphQL type name
-func (r *Function) XXX_GraphQLType() string {
-	return "Function"
-}
-
-// XXX_GraphQLIDType is an internal function. It returns the native GraphQL type name for the ID of this object
-func (r *Function) XXX_GraphQLIDType() string {
-	return "FunctionID"
-}
-
-// XXX_GraphQLID is an internal function. It returns the underlying type ID
-func (r *Function) XXX_GraphQLID(ctx context.Context) (string, error) {
-	id, err := r.ID(ctx)
-	if err != nil {
-		return "", err
-	}
-	return string(id), nil
-}
-
-func (r *Function) MarshalJSON() ([]byte, error) {
-	id, err := r.ID(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(id)
-}
-func (r *Function) UnmarshalJSON(bs []byte) error {
-	var id string
-	err := json.Unmarshal(bs, &id)
-	if err != nil {
-		return err
-	}
-
-	*r = *dag.Function(FunctionID(id))
-
-	return nil
-}
-
-// The name of the function
-func (r *Function) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The type returned by this function
-func (r *Function) ReturnType() *TypeDef {
-	q := r.q.Select("returnType")
-
-	return &TypeDef{
-		q: q,
-		c: r.c,
-	}
-}
-
-type FunctionArg struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	defaultValue *JSON
-	description  *string
-	name         *string
-}
-
-// A default value to use for this argument when not explicitly set by the caller, if any
-func (r *FunctionArg) DefaultValue(ctx context.Context) (JSON, error) {
-	if r.defaultValue != nil {
-		return *r.defaultValue, nil
-	}
-	q := r.q.Select("defaultValue")
-
-	var response JSON
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// A doc string for the argument, if any
-func (r *FunctionArg) Description(ctx context.Context) (string, error) {
-	if r.description != nil {
-		return *r.description, nil
-	}
-	q := r.q.Select("description")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The name of the argument
-func (r *FunctionArg) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The type of the argument
-func (r *FunctionArg) TypeDef() *TypeDef {
-	q := r.q.Select("typeDef")
-
-	return &TypeDef{
-		q: q,
-		c: r.c,
-	}
-}
-
-type FunctionCall struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	name        *string
-	parent      *JSON
-	parentName  *string
-	returnValue *Void
-}
-
-// The argument values the function is being invoked with.
-func (r *FunctionCall) InputArgs(ctx context.Context) ([]FunctionCallArgValue, error) {
-	q := r.q.Select("inputArgs")
-
-	q = q.Select("name value")
-
-	type inputArgs struct {
-		Name  string
-		Value JSON
-	}
-
-	convert := func(fields []inputArgs) []FunctionCallArgValue {
-		out := []FunctionCallArgValue{}
-
-		for i := range fields {
-			out = append(out, FunctionCallArgValue{name: &fields[i].Name, value: &fields[i].Value})
-		}
-
-		return out
-	}
-	var response []inputArgs
-
-	q = q.Bind(&response)
-
-	err := q.Execute(ctx, r.c)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert(response), nil
-}
-
-// The name of the function being called.
-func (r *FunctionCall) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The value of the parent object of the function being called.
-// If the function is "top-level" to the module, this is always an empty object.
-func (r *FunctionCall) Parent(ctx context.Context) (JSON, error) {
-	if r.parent != nil {
-		return *r.parent, nil
-	}
-	q := r.q.Select("parent")
-
-	var response JSON
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The name of the parent object of the function being called.
-// If the function is "top-level" to the module, this is the name of the module.
-func (r *FunctionCall) ParentName(ctx context.Context) (string, error) {
-	if r.parentName != nil {
-		return *r.parentName, nil
-	}
-	q := r.q.Select("parentName")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// Set the return value of the function call to the provided value.
-// The value should be a string of the JSON serialization of the return value.
-func (r *FunctionCall) ReturnValue(ctx context.Context, value JSON) (Void, error) {
-	if r.returnValue != nil {
-		return *r.returnValue, nil
-	}
-	q := r.q.Select("returnValue")
-	q = q.Arg("value", value)
-
-	var response Void
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-type FunctionCallArgValue struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	name  *string
-	value *JSON
-}
-
-// The name of the argument.
-func (r *FunctionCallArgValue) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// The value of the argument represented as a string of the JSON serialization.
-func (r *FunctionCallArgValue) Value(ctx context.Context) (JSON, error) {
-	if r.value != nil {
-		return *r.value, nil
-	}
-	q := r.q.Select("value")
-
-	var response JSON
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
 }
 
 // A git ref (tag, branch or commit).
@@ -2633,284 +2103,6 @@ func (r *Label) Value(ctx context.Context) (string, error) {
 	return response, q.Execute(ctx, r.c)
 }
 
-type ListTypeDef struct {
-	q *querybuilder.Selection
-	c graphql.Client
-}
-
-// The type of the elements in the list
-func (r *ListTypeDef) ElementTypeDef() *TypeDef {
-	q := r.q.Select("elementTypeDef")
-
-	return &TypeDef{
-		q: q,
-		c: r.c,
-	}
-}
-
-type Module struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	description *string
-	id          *ModuleID
-	name        *string
-	serve       *Void
-}
-type WithModuleFunc func(r *Module) *Module
-
-// With calls the provided function with current Module.
-//
-// This is useful for reusability and readability by not breaking the calling chain.
-func (r *Module) With(f WithModuleFunc) *Module {
-	return f(r)
-}
-
-// The doc string of the module, if any
-func (r *Module) Description(ctx context.Context) (string, error) {
-	if r.description != nil {
-		return *r.description, nil
-	}
-	q := r.q.Select("description")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// Functions served by this module
-func (r *Module) Functions(ctx context.Context) ([]Function, error) {
-	q := r.q.Select("functions")
-
-	q = q.Select("id")
-
-	type functions struct {
-		Id FunctionID
-	}
-
-	convert := func(fields []functions) []Function {
-		out := []Function{}
-
-		for i := range fields {
-			out = append(out, Function{id: &fields[i].Id})
-		}
-
-		return out
-	}
-	var response []functions
-
-	q = q.Bind(&response)
-
-	err := q.Execute(ctx, r.c)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert(response), nil
-}
-
-func (r *Module) ID(ctx context.Context) (ModuleID, error) {
-	if r.id != nil {
-		return *r.id, nil
-	}
-	q := r.q.Select("id")
-
-	var response ModuleID
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// XXX_GraphQLType is an internal function. It returns the native GraphQL type name
-func (r *Module) XXX_GraphQLType() string {
-	return "Module"
-}
-
-// XXX_GraphQLIDType is an internal function. It returns the native GraphQL type name for the ID of this object
-func (r *Module) XXX_GraphQLIDType() string {
-	return "ModuleID"
-}
-
-// XXX_GraphQLID is an internal function. It returns the underlying type ID
-func (r *Module) XXX_GraphQLID(ctx context.Context) (string, error) {
-	id, err := r.ID(ctx)
-	if err != nil {
-		return "", err
-	}
-	return string(id), nil
-}
-
-func (r *Module) MarshalJSON() ([]byte, error) {
-	id, err := r.ID(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(id)
-}
-func (r *Module) UnmarshalJSON(bs []byte) error {
-	var id string
-	err := json.Unmarshal(bs, &id)
-	if err != nil {
-		return err
-	}
-
-	*r = *dag.Module(ModuleOpts{
-		ID: ModuleID(id),
-	})
-
-	return nil
-}
-
-// The name of the module
-func (r *Module) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// ModuleServeOpts contains options for Module.Serve
-type ModuleServeOpts struct {
-	Environment []*ModuleEnvironmentVariable
-}
-
-// Serve a module's API in the current session.
-//
-//	Note: this can only be called once per session.
-//	In the future, it could return a stream or service to remove the side effect.
-func (r *Module) Serve(ctx context.Context, opts ...ModuleServeOpts) (Void, error) {
-	if r.serve != nil {
-		return *r.serve, nil
-	}
-	q := r.q.Select("serve")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `environment` optional argument
-		if !querybuilder.IsZeroValue(opts[i].Environment) {
-			q = q.Arg("environment", opts[i].Environment)
-		}
-	}
-
-	var response Void
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// This module plus the given Function associated with it
-func (r *Module) WithFunction(id *Function) *Module {
-	q := r.q.Select("withFunction")
-	q = q.Arg("id", id)
-
-	return &Module{
-		q: q,
-		c: r.c,
-	}
-}
-
-// A definition of a custom object defined in a Module.
-type ObjectTypeDef struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	description *string
-	name        *string
-}
-
-// The doc string for the object, if any
-func (r *ObjectTypeDef) Description(ctx context.Context) (string, error) {
-	if r.description != nil {
-		return *r.description, nil
-	}
-	q := r.q.Select("description")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// Static fields defined on this object, if any
-func (r *ObjectTypeDef) Fields(ctx context.Context) ([]FieldTypeDef, error) {
-	q := r.q.Select("fields")
-
-	q = q.Select("description name")
-
-	type fields struct {
-		Description string
-		Name        string
-	}
-
-	convert := func(fields []fields) []FieldTypeDef {
-		out := []FieldTypeDef{}
-
-		for i := range fields {
-			out = append(out, FieldTypeDef{description: &fields[i].Description, name: &fields[i].Name})
-		}
-
-		return out
-	}
-	var response []fields
-
-	q = q.Bind(&response)
-
-	err := q.Execute(ctx, r.c)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert(response), nil
-}
-
-// Functions defined on this object, if any
-func (r *ObjectTypeDef) Functions(ctx context.Context) ([]Function, error) {
-	q := r.q.Select("functions")
-
-	q = q.Select("id")
-
-	type functions struct {
-		Id FunctionID
-	}
-
-	convert := func(fields []functions) []Function {
-		out := []Function{}
-
-		for i := range fields {
-			out = append(out, Function{id: &fields[i].Id})
-		}
-
-		return out
-	}
-	var response []functions
-
-	q = q.Bind(&response)
-
-	err := q.Execute(ctx, r.c)
-	if err != nil {
-		return nil, err
-	}
-
-	return convert(response), nil
-}
-
-// The name of the object
-func (r *ObjectTypeDef) Name(ctx context.Context) (string, error) {
-	if r.name != nil {
-		return *r.name, nil
-	}
-	q := r.q.Select("name")
-
-	var response string
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
 // A port exposed by a container.
 type Port struct {
 	q *querybuilder.Selection
@@ -2955,6 +2147,325 @@ func (r *Port) Protocol(ctx context.Context) (NetworkProtocol, error) {
 	q := r.q.Select("protocol")
 
 	var response NetworkProtocol
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// A collection of Dagger resources that can be queried and invoked.
+type Project struct {
+	q *querybuilder.Selection
+	c graphql.Client
+
+	id   *ProjectID
+	name *string
+}
+type WithProjectFunc func(r *Project) *Project
+
+// With calls the provided function with current Project.
+//
+// This is useful for reusability and readability by not breaking the calling chain.
+func (r *Project) With(f WithProjectFunc) *Project {
+	return f(r)
+}
+
+// Commands provided by this project
+func (r *Project) Commands(ctx context.Context) ([]ProjectCommand, error) {
+	q := r.q.Select("commands")
+
+	q = q.Select("id")
+
+	type commands struct {
+		Id ProjectCommandID
+	}
+
+	convert := func(fields []commands) []ProjectCommand {
+		out := []ProjectCommand{}
+
+		for i := range fields {
+			out = append(out, ProjectCommand{id: &fields[i].Id})
+		}
+
+		return out
+	}
+	var response []commands
+
+	q = q.Bind(&response)
+
+	err := q.Execute(ctx, r.c)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert(response), nil
+}
+
+// A unique identifier for this project.
+func (r *Project) ID(ctx context.Context) (ProjectID, error) {
+	if r.id != nil {
+		return *r.id, nil
+	}
+	q := r.q.Select("id")
+
+	var response ProjectID
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// XXX_GraphQLType is an internal function. It returns the native GraphQL type name
+func (r *Project) XXX_GraphQLType() string {
+	return "Project"
+}
+
+// XXX_GraphQLIDType is an internal function. It returns the native GraphQL type name for the ID of this object
+func (r *Project) XXX_GraphQLIDType() string {
+	return "ProjectID"
+}
+
+// XXX_GraphQLID is an internal function. It returns the underlying type ID
+func (r *Project) XXX_GraphQLID(ctx context.Context) (string, error) {
+	id, err := r.ID(ctx)
+	if err != nil {
+		return "", err
+	}
+	return string(id), nil
+}
+
+func (r *Project) MarshalJSON() ([]byte, error) {
+	id, err := r.ID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(id)
+}
+func (r *Project) UnmarshalJSON(bs []byte) error {
+	var id string
+	err := json.Unmarshal(bs, &id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Initialize this project from the given directory and config path
+func (r *Project) Load(source *Directory, configPath string) *Project {
+	q := r.q.Select("load")
+	q = q.Arg("source", source)
+	q = q.Arg("configPath", configPath)
+
+	return &Project{
+		q: q,
+		c: r.c,
+	}
+}
+
+// Name of the project
+func (r *Project) Name(ctx context.Context) (string, error) {
+	if r.name != nil {
+		return *r.name, nil
+	}
+	q := r.q.Select("name")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// A command defined in a project that can be invoked from the CLI.
+type ProjectCommand struct {
+	q *querybuilder.Selection
+	c graphql.Client
+
+	description *string
+	id          *ProjectCommandID
+	name        *string
+	resultType  *string
+}
+
+// Documentation for what this command does.
+func (r *ProjectCommand) Description(ctx context.Context) (string, error) {
+	if r.description != nil {
+		return *r.description, nil
+	}
+	q := r.q.Select("description")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// Flags accepted by this command.
+func (r *ProjectCommand) Flags(ctx context.Context) ([]ProjectCommandFlag, error) {
+	q := r.q.Select("flags")
+
+	q = q.Select("description name")
+
+	type flags struct {
+		Description string
+		Name        string
+	}
+
+	convert := func(fields []flags) []ProjectCommandFlag {
+		out := []ProjectCommandFlag{}
+
+		for i := range fields {
+			out = append(out, ProjectCommandFlag{description: &fields[i].Description, name: &fields[i].Name})
+		}
+
+		return out
+	}
+	var response []flags
+
+	q = q.Bind(&response)
+
+	err := q.Execute(ctx, r.c)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert(response), nil
+}
+
+// A unique identifier for this command.
+func (r *ProjectCommand) ID(ctx context.Context) (ProjectCommandID, error) {
+	if r.id != nil {
+		return *r.id, nil
+	}
+	q := r.q.Select("id")
+
+	var response ProjectCommandID
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// XXX_GraphQLType is an internal function. It returns the native GraphQL type name
+func (r *ProjectCommand) XXX_GraphQLType() string {
+	return "ProjectCommand"
+}
+
+// XXX_GraphQLIDType is an internal function. It returns the native GraphQL type name for the ID of this object
+func (r *ProjectCommand) XXX_GraphQLIDType() string {
+	return "ProjectCommandID"
+}
+
+// XXX_GraphQLID is an internal function. It returns the underlying type ID
+func (r *ProjectCommand) XXX_GraphQLID(ctx context.Context) (string, error) {
+	id, err := r.ID(ctx)
+	if err != nil {
+		return "", err
+	}
+	return string(id), nil
+}
+
+func (r *ProjectCommand) MarshalJSON() ([]byte, error) {
+	id, err := r.ID(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(id)
+}
+func (r *ProjectCommand) UnmarshalJSON(bs []byte) error {
+	var id string
+	err := json.Unmarshal(bs, &id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// The name of the command.
+func (r *ProjectCommand) Name(ctx context.Context) (string, error) {
+	if r.name != nil {
+		return *r.name, nil
+	}
+	q := r.q.Select("name")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// The name of the type returned by this command.
+func (r *ProjectCommand) ResultType(ctx context.Context) (string, error) {
+	if r.resultType != nil {
+		return *r.resultType, nil
+	}
+	q := r.q.Select("resultType")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// Subcommands, if any, that this command provides.
+func (r *ProjectCommand) Subcommands(ctx context.Context) ([]ProjectCommand, error) {
+	q := r.q.Select("subcommands")
+
+	q = q.Select("id")
+
+	type subcommands struct {
+		Id ProjectCommandID
+	}
+
+	convert := func(fields []subcommands) []ProjectCommand {
+		out := []ProjectCommand{}
+
+		for i := range fields {
+			out = append(out, ProjectCommand{id: &fields[i].Id})
+		}
+
+		return out
+	}
+	var response []subcommands
+
+	q = q.Bind(&response)
+
+	err := q.Execute(ctx, r.c)
+	if err != nil {
+		return nil, err
+	}
+
+	return convert(response), nil
+}
+
+// A flag accepted by a project command.
+type ProjectCommandFlag struct {
+	q *querybuilder.Selection
+	c graphql.Client
+
+	description *string
+	name        *string
+}
+
+// Documentation for what this flag sets.
+func (r *ProjectCommandFlag) Description(ctx context.Context) (string, error) {
+	if r.description != nil {
+		return *r.description, nil
+	}
+	q := r.q.Select("description")
+
+	var response string
+
+	q = q.Bind(&response)
+	return response, q.Execute(ctx, r.c)
+}
+
+// The name of the flag.
+func (r *ProjectCommandFlag) Name(ctx context.Context) (string, error) {
+	if r.name != nil {
+		return *r.name, nil
+	}
+	q := r.q.Select("name")
+
+	var response string
 
 	q = q.Bind(&response)
 	return response, q.Execute(ctx, r.c)
@@ -3022,28 +2533,6 @@ func (r *Client) Container(opts ...ContainerOpts) *Container {
 	}
 }
 
-// The FunctionCall context that the SDK caller is currently executing in.
-// If the caller is not currently executing in a function, this will return
-// an error.
-func (r *Client) CurrentFunctionCall() *FunctionCall {
-	q := r.q.Select("currentFunctionCall")
-
-	return &FunctionCall{
-		q: q,
-		c: r.c,
-	}
-}
-
-// The module currently being served in the session, if any.
-func (r *Client) CurrentModule() *Module {
-	q := r.q.Select("currentModule")
-
-	return &Module{
-		q: q,
-		c: r.c,
-	}
-}
-
 // The default platform of the builder.
 func (r *Client) DefaultPlatform(ctx context.Context) (Platform, error) {
 	q := r.q.Select("defaultPlatform")
@@ -3081,17 +2570,6 @@ func (r *Client) File(id FileID) *File {
 	q = q.Arg("id", id)
 
 	return &File{
-		q: q,
-		c: r.c,
-	}
-}
-
-// Load a function by ID
-func (r *Client) Function(id FunctionID) *Function {
-	q := r.q.Select("function")
-	q = q.Arg("id", id)
-
-	return &Function{
 		q: q,
 		c: r.c,
 	}
@@ -3159,38 +2637,6 @@ func (r *Client) HTTP(url string, opts ...HTTPOpts) *File {
 	}
 }
 
-// ModuleOpts contains options for Client.Module
-type ModuleOpts struct {
-	ID ModuleID
-}
-
-// Load a module by ID, or create a new one if id is unset.
-func (r *Client) Module(opts ...ModuleOpts) *Module {
-	q := r.q.Select("module")
-	for i := len(opts) - 1; i >= 0; i-- {
-		// `id` optional argument
-		if !querybuilder.IsZeroValue(opts[i].ID) {
-			q = q.Arg("id", opts[i].ID)
-		}
-	}
-
-	return &Module{
-		q: q,
-		c: r.c,
-	}
-}
-
-// Create a new function from the provided definition.
-func (r *Client) NewFunction(def *FunctionDef) *Function {
-	q := r.q.Select("newFunction")
-	q = q.Arg("def", def)
-
-	return &Function{
-		q: q,
-		c: r.c,
-	}
-}
-
 // PipelineOpts contains options for Client.Pipeline
 type PipelineOpts struct {
 	// Pipeline description.
@@ -3215,6 +2661,48 @@ func (r *Client) Pipeline(name string, opts ...PipelineOpts) *Client {
 	q = q.Arg("name", name)
 
 	return &Client{
+		q: q,
+		c: r.c,
+	}
+}
+
+// ProjectOpts contains options for Client.Project
+type ProjectOpts struct {
+	ID ProjectID
+}
+
+// Load a project from ID.
+func (r *Client) Project(opts ...ProjectOpts) *Project {
+	q := r.q.Select("project")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `id` optional argument
+		if !querybuilder.IsZeroValue(opts[i].ID) {
+			q = q.Arg("id", opts[i].ID)
+		}
+	}
+
+	return &Project{
+		q: q,
+		c: r.c,
+	}
+}
+
+// ProjectCommandOpts contains options for Client.ProjectCommand
+type ProjectCommandOpts struct {
+	ID ProjectCommandID
+}
+
+// Load a project command from ID.
+func (r *Client) ProjectCommand(opts ...ProjectCommandOpts) *ProjectCommand {
+	q := r.q.Select("projectCommand")
+	for i := len(opts) - 1; i >= 0; i-- {
+		// `id` optional argument
+		if !querybuilder.IsZeroValue(opts[i].ID) {
+			q = q.Arg("id", opts[i].ID)
+		}
+	}
+
+	return &ProjectCommand{
 		q: q,
 		c: r.c,
 	}
@@ -3398,63 +2886,6 @@ func (r *Socket) UnmarshalJSON(bs []byte) error {
 	return nil
 }
 
-// A definition of a parameter or return type in a Module.
-type TypeDef struct {
-	q *querybuilder.Selection
-	c graphql.Client
-
-	kind     *TypeDefKind
-	optional *bool
-}
-
-// If kind is LIST, the list-specific type definition.
-// If kind is not LIST, this will be null.
-func (r *TypeDef) AsList() *ListTypeDef {
-	q := r.q.Select("asList")
-
-	return &ListTypeDef{
-		q: q,
-		c: r.c,
-	}
-}
-
-// If kind is OBJECT, the object-specific type definition.
-// If kind is not OBJECT, this will be null.
-func (r *TypeDef) AsObject() *ObjectTypeDef {
-	q := r.q.Select("asObject")
-
-	return &ObjectTypeDef{
-		q: q,
-		c: r.c,
-	}
-}
-
-// The kind of type this is (e.g. primitive, list, object)
-func (r *TypeDef) Kind(ctx context.Context) (TypeDefKind, error) {
-	if r.kind != nil {
-		return *r.kind, nil
-	}
-	q := r.q.Select("kind")
-
-	var response TypeDefKind
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
-// Whether this type can be set to null. Defaults to false.
-func (r *TypeDef) Optional(ctx context.Context) (bool, error) {
-	if r.optional != nil {
-		return *r.optional, nil
-	}
-	q := r.q.Select("optional")
-
-	var response bool
-
-	q = q.Bind(&response)
-	return response, q.Execute(ctx, r.c)
-}
-
 type CacheSharingMode string
 
 const (
@@ -3484,16 +2915,6 @@ type NetworkProtocol string
 const (
 	Tcp NetworkProtocol = "TCP"
 	Udp NetworkProtocol = "UDP"
-)
-
-type TypeDefKind string
-
-const (
-	Booleankind TypeDefKind = "BooleanKind"
-	Integerkind TypeDefKind = "IntegerKind"
-	Listkind    TypeDefKind = "ListKind"
-	Objectkind  TypeDefKind = "ObjectKind"
-	Stringkind  TypeDefKind = "StringKind"
 )
 
 type Client struct {
