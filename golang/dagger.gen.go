@@ -3718,7 +3718,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 			return (*Golang).Foo(&parent, ctx)
 		case "":
 			var err error
-			var typeDefBytes []byte = []byte("{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"version\",\"typeDef\":{\"kind\":\"StringKind\"}}],\"name\":\"Base\",\"returnType\":{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoBuild\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoTest\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"name\":\"Foo\",\"returnType\":{\"asObject\":{\"functions\":[{\"name\":\"GoLint\",\"returnType\":{\"kind\":\"StringKind\"}},{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoTestToo\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Directory\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Golang\"},\"kind\":\"ObjectKind\"}")
+			var typeDefBytes []byte = []byte("{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"version\",\"typeDef\":{\"kind\":\"StringKind\"}}],\"name\":\"Base\",\"returnType\":{\"asObject\":{\"functions\":[{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoBuild\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoTest\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Container\"},\"kind\":\"ObjectKind\"}},{\"name\":\"Foo\",\"returnType\":{\"asObject\":{\"functions\":[{\"name\":\"GoLint\",\"returnType\":{\"kind\":\"StringKind\"}},{\"args\":[{\"name\":\"args\",\"typeDef\":{\"asList\":{\"elementTypeDef\":{\"kind\":\"StringKind\"}},\"kind\":\"ListKind\"}}],\"name\":\"GoTest\",\"returnType\":{\"asObject\":{\"name\":\"Container\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Directory\"},\"kind\":\"ObjectKind\"}}],\"name\":\"Golang\"},\"kind\":\"ObjectKind\"}")
 			var typeDef TypeDefInput
 			err = json.Unmarshal(typeDefBytes, &typeDef)
 			if err != nil {
@@ -3779,7 +3779,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				os.Exit(2)
 			}
 			return (*Directory).GoLint(&parent, ctx)
-		case "GoTestToo":
+		case "GoTest":
 			var err error
 			var parent Directory
 			err = json.Unmarshal(parentJSON, &parent)
@@ -3793,7 +3793,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				fmt.Println(err.Error())
 				os.Exit(2)
 			}
-			return (*Directory).GoTestToo(&parent, ctx, args)
+			return (*Directory).GoTest(&parent, ctx, args)
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
