@@ -3690,6 +3690,35 @@ func main() {
 
 func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName string, inputArgs map[string][]byte) (any, error) {
 	switch parentName {
+	case "Directory":
+		switch fnName {
+		case "GoLint":
+			var err error
+			var parent Directory
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Directory).GoLint(&parent, ctx)
+		case "GoTest":
+			var err error
+			var parent Directory
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var args []string
+			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Directory).GoTest(&parent, ctx, args)
+		default:
+			return nil, fmt.Errorf("unknown function %s", fnName)
+		}
 	case "Golang":
 		switch fnName {
 		case "Base":
@@ -3765,35 +3794,6 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				os.Exit(2)
 			}
 			return (*Container).GoTest(&parent, ctx, args)
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		}
-	case "Directory":
-		switch fnName {
-		case "GoLint":
-			var err error
-			var parent Directory
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Directory).GoLint(&parent, ctx)
-		case "GoTest":
-			var err error
-			var parent Directory
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var args []string
-			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Directory).GoTest(&parent, ctx, args)
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}

@@ -32,8 +32,8 @@ func (c *Container) GoTest(ctx context.Context, args []string) (*Container, erro
 
 func (d *Directory) GoTest(ctx context.Context, args []string) (*Container, error) {
 	command := append([]string{"go", "test"}, args...)
-	c, err := (&Golang{}).Base(ctx, "latest").
-		WithMountedDirectory("/src", d).
+	c, err := (&Golang{}).Base(ctx, "latest")
+	c = c.WithMountedDirectory("/src", d).
 		WithWorkdir("/src")
 	if err != nil {
 		return nil, err
