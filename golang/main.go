@@ -16,6 +16,10 @@ func (m *Golang) Base(ctx context.Context, version string) (*Container, error) {
 	WithEnvVariable("GOMODCACHE", "/gomodcache").Sync(ctx)
 }
 
+func (m *Golang) Foo(ctx context.Context) (*Directory, error) {
+	return nil, nil
+} 
+
 func (c *Container) GoBuild(ctx context.Context, args []string) (*Container, error) {
 	command := append([]string{"go", "build"}, args...)
 	return c.WithExec(command).Sync(ctx)
