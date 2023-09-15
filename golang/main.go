@@ -26,7 +26,7 @@ func (c *Container) GoTest(ctx context.Context, args []string) (*Container, erro
 	return c.WithExec(command).Sync(ctx)
 }
 
-func (d *Directory) GoTest(ctx context.Context, args []string) (*Container, error) {
+func (d *Directory) GoTestToo(ctx context.Context, args []string) (*Container, error) {
 	command := append([]string{"go", "test"}, args...)
 	c, err := (&Golang{}).Base(ctx, "latest")
 	if err != nil {
