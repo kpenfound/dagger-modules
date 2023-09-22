@@ -60,3 +60,18 @@ func (m *Secretsmanager) PutSecret(name, value string) (*Secretsmanager, error) 
 	_, err = svc.PutSecretValue(input)
 	return m, err
 }
+
+func (c *Container) WithAWSSecret(key, secret, name, envName string) (*Container, error) {
+	sm := &Secretsmanager{
+		Key:    key,
+		Secret: secret,
+	}
+
+	s, err := sm.GetSecret(name)
+	if err != nil {
+		return nil, err
+	}
+
+	dagSecret := dag.SetSecret(envName, s)
+	return c.WithSecretVariable(envName, dagSecret), nil
+}
