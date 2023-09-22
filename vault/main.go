@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	vcg "github.com/hashicorp/vault-client-go"
@@ -31,7 +32,7 @@ func (v *Vault) GetSecret(ctx context.Context, secret, key string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	return s.Data.Data[key]
+	return fmt.Sprint(s.Data.Data[key]), nil
 }
 
 func (v *Vault) PutSecret(ctx context.Context, secret, key, value string) (*Vault, error) {
