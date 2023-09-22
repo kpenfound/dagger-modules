@@ -48,6 +48,22 @@ func (v *Vault) PutSecret(ctx context.Context, secret, key, value string) (*Vaul
 	return v, err
 }
 
+func (c *Container) WithVaultSecret(ctx context.Context, approleID, approleSecret, address, secret, key, name string) (*Container, error) {
+	v := &Vault{
+		ApproleID:     approleID,
+		ApproleSecret: approleSecret,
+		Address:       address,
+	}
+
+	s, err := v.GetSecret(ctx, secret, key)
+	if err != nil {
+		return nil, err
+	}
+
+	dagSecret := dag.SetSecret(name, s)
+	return c.WithMountedSecret(name, dagSecret), nil
+}
+
 func getClient(ctx context.Context, v *Vault) (*vcg.Client, error) {
 	client, err := vcg.New(
 		vcg.WithAddress(v.Address),
