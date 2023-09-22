@@ -3870,6 +3870,64 @@ func main() {
 
 func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName string, inputArgs map[string][]byte) (any, error) {
 	switch parentName {
+	case "Directory":
+		switch fnName {
+		case "GoTest":
+			var err error
+			var parent Directory
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var args []string
+			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Directory).GoTest(&parent, ctx, args)
+		case "GoLint":
+			var err error
+			var parent Directory
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Directory).GoLint(&parent, ctx)
+		default:
+			return nil, fmt.Errorf("unknown function %s", fnName)
+		}
+	case "Golang":
+		switch fnName {
+		case "Base":
+			var err error
+			var parent Golang
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var version string
+			err = json.Unmarshal([]byte(inputArgs["version"]), &version)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Golang).Base(&parent, ctx, version)
+		case "Foo":
+			var err error
+			var parent Golang
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Golang).Foo(&parent, ctx)
+		default:
+			return nil, fmt.Errorf("unknown function %s", fnName)
+		}
 	case "Container":
 		switch fnName {
 		case "GoBuild":
@@ -3905,66 +3963,36 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
-	case "Directory":
-		switch fnName {
-		case "GoLint":
-			var err error
-			var parent Directory
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Directory).GoLint(&parent, ctx)
-		case "GoTest":
-			var err error
-			var parent Directory
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var args []string
-			err = json.Unmarshal([]byte(inputArgs["args"]), &args)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Directory).GoTest(&parent, ctx, args)
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		}
-	case "Golang":
-		switch fnName {
-		case "Base":
-			var err error
-			var parent Golang
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var version string
-			err = json.Unmarshal([]byte(inputArgs["version"]), &version)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Golang).Base(&parent, ctx, version)
-		case "Foo":
-			var err error
-			var parent Golang
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Golang).Foo(&parent, ctx)
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		}
 	case "":
-		return dag.CurrentModule().WithObject(dag.TypeDef().WithObject("Container").WithFunction(dag.NewFunction("GoBuild", dag.TypeDef().WithObject("Container")).WithArg("args", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(Stringkind)))).WithFunction(dag.NewFunction("GoTest", dag.TypeDef().WithObject("Container")).WithArg("args", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(Stringkind))))).WithObject(dag.TypeDef().WithObject("Directory").WithFunction(dag.NewFunction("GoLint", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("GoTest", dag.TypeDef().WithObject("Container")).WithArg("args", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(Stringkind))))).WithObject(dag.TypeDef().WithObject("Golang").WithFunction(dag.NewFunction("Base", dag.TypeDef().WithObject("Container")).WithArg("version", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("Foo", dag.TypeDef().WithObject("Directory")))), nil
+		return dag.CurrentModule().
+			WithObject(
+				dag.TypeDef().WithObject("Container").
+					WithFunction(
+						dag.NewFunction("GoBuild",
+							dag.TypeDef().WithObject("Container")).
+							WithArg("args", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(Stringkind)))).
+					WithFunction(
+						dag.NewFunction("GoTest",
+							dag.TypeDef().WithObject("Container")).
+							WithArg("args", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(Stringkind))))).
+			WithObject(
+				dag.TypeDef().WithObject("Directory").
+					WithFunction(
+						dag.NewFunction("GoTest",
+							dag.TypeDef().WithObject("Container")).
+							WithArg("args", dag.TypeDef().WithListOf(dag.TypeDef().WithKind(Stringkind)))).
+					WithFunction(
+						dag.NewFunction("GoLint",
+							dag.TypeDef().WithKind(Stringkind)))).
+			WithObject(
+				dag.TypeDef().WithObject("Golang").
+					WithFunction(
+						dag.NewFunction("Base",
+							dag.TypeDef().WithObject("Container")).
+							WithArg("version", dag.TypeDef().WithKind(Stringkind))).
+					WithFunction(
+						dag.NewFunction("Foo",
+							dag.TypeDef().WithObject("Directory")))), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}

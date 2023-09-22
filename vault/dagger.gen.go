@@ -3870,56 +3870,6 @@ func main() {
 
 func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName string, inputArgs map[string][]byte) (any, error) {
 	switch parentName {
-	case "Container":
-		switch fnName {
-		case "WithVaultSecret":
-			var err error
-			var parent Container
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var approleId string
-			err = json.Unmarshal([]byte(inputArgs["approleId"]), &approleId)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var approleSecret string
-			err = json.Unmarshal([]byte(inputArgs["approleSecret"]), &approleSecret)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var address string
-			err = json.Unmarshal([]byte(inputArgs["address"]), &address)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var secret string
-			err = json.Unmarshal([]byte(inputArgs["secret"]), &secret)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var key string
-			err = json.Unmarshal([]byte(inputArgs["key"]), &key)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var name string
-			err = json.Unmarshal([]byte(inputArgs["name"]), &name)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Container).WithVaultSecret(&parent, ctx, approleId, approleSecret, address, secret, key, name)
-		default:
-			return nil, fmt.Errorf("unknown function %s", fnName)
-		}
 	case "Vault":
 		switch fnName {
 		case "Auth":
@@ -4000,8 +3950,91 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 		default:
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
+	case "Container":
+		switch fnName {
+		case "WithVaultSecret":
+			var err error
+			var parent Container
+			err = json.Unmarshal(parentJSON, &parent)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var approleId string
+			err = json.Unmarshal([]byte(inputArgs["approleId"]), &approleId)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var approleSecret string
+			err = json.Unmarshal([]byte(inputArgs["approleSecret"]), &approleSecret)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var address string
+			err = json.Unmarshal([]byte(inputArgs["address"]), &address)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var secret string
+			err = json.Unmarshal([]byte(inputArgs["secret"]), &secret)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var key string
+			err = json.Unmarshal([]byte(inputArgs["key"]), &key)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			var name string
+			err = json.Unmarshal([]byte(inputArgs["name"]), &name)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(2)
+			}
+			return (*Container).WithVaultSecret(&parent, ctx, approleId, approleSecret, address, secret, key, name)
+		default:
+			return nil, fmt.Errorf("unknown function %s", fnName)
+		}
 	case "":
-		return dag.CurrentModule().WithObject(dag.TypeDef().WithObject("Container").WithFunction(dag.NewFunction("WithVaultSecret", dag.TypeDef().WithObject("Container")).WithArg("approleID", dag.TypeDef().WithKind(Stringkind)).WithArg("approleSecret", dag.TypeDef().WithKind(Stringkind)).WithArg("address", dag.TypeDef().WithKind(Stringkind)).WithArg("secret", dag.TypeDef().WithKind(Stringkind)).WithArg("key", dag.TypeDef().WithKind(Stringkind)).WithArg("name", dag.TypeDef().WithKind(Stringkind)))).WithObject(dag.TypeDef().WithObject("Vault").WithFunction(dag.NewFunction("Auth", dag.TypeDef().WithObject("Vault")).WithArg("approleID", dag.TypeDef().WithKind(Stringkind)).WithArg("approleSecret", dag.TypeDef().WithKind(Stringkind)).WithArg("address", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("GetSecret", dag.TypeDef().WithKind(Stringkind)).WithArg("secret", dag.TypeDef().WithKind(Stringkind)).WithArg("key", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("PutSecret", dag.TypeDef().WithObject("Vault")).WithArg("secret", dag.TypeDef().WithKind(Stringkind)).WithArg("key", dag.TypeDef().WithKind(Stringkind)).WithArg("value", dag.TypeDef().WithKind(Stringkind))).WithField("ApproleID", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""}).WithField("ApproleSecret", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""}).WithField("Address", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""})), nil
+		return dag.CurrentModule().
+			WithObject(
+				dag.TypeDef().WithObject("Vault").
+					WithFunction(
+						dag.NewFunction("Auth",
+							dag.TypeDef().WithObject("Vault")).
+							WithArg("approleID", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("approleSecret", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("address", dag.TypeDef().WithKind(Stringkind))).
+					WithFunction(
+						dag.NewFunction("GetSecret",
+							dag.TypeDef().WithKind(Stringkind)).
+							WithArg("secret", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("key", dag.TypeDef().WithKind(Stringkind))).
+					WithFunction(
+						dag.NewFunction("PutSecret",
+							dag.TypeDef().WithObject("Vault")).
+							WithArg("secret", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("key", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("value", dag.TypeDef().WithKind(Stringkind))).
+					WithField("ApproleID", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""}).
+					WithField("ApproleSecret", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""}).
+					WithField("Address", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""})).
+			WithObject(
+				dag.TypeDef().WithObject("Container").
+					WithFunction(
+						dag.NewFunction("WithVaultSecret",
+							dag.TypeDef().WithObject("Container")).
+							WithArg("approleID", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("approleSecret", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("address", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("secret", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("key", dag.TypeDef().WithKind(Stringkind)).
+							WithArg("name", dag.TypeDef().WithKind(Stringkind)))), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}
