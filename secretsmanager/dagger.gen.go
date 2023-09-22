@@ -3892,7 +3892,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 				fmt.Println(err.Error())
 				os.Exit(2)
 			}
-			return (*Secretsmanager).Auth(&parent, key, secret)
+			return (*Secretsmanager).Auth(&parent, key, secret), nil
 		case "GetSecret":
 			var err error
 			var parent Secretsmanager
@@ -3933,7 +3933,7 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 			return nil, fmt.Errorf("unknown function %s", fnName)
 		}
 	case "":
-		return dag.CurrentModule().WithObject(dag.TypeDef().WithObject("Secretsmanager").WithFunction(dag.NewFunction("Auth", dag.TypeDef().WithObject("Secretsmanager")).WithArg("key", dag.TypeDef().WithKind(Stringkind)).WithArg("secret", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("GetSecret", dag.TypeDef().WithKind(Stringkind)).WithArg("name", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("PutSecret", dag.TypeDef().WithObject("Secretsmanager")).WithArg("name", dag.TypeDef().WithKind(Stringkind)).WithArg("value", dag.TypeDef().WithKind(Stringkind)))), nil
+		return dag.CurrentModule().WithObject(dag.TypeDef().WithObject("Secretsmanager").WithFunction(dag.NewFunction("Auth", dag.TypeDef().WithObject("Secretsmanager")).WithArg("key", dag.TypeDef().WithKind(Stringkind)).WithArg("secret", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("GetSecret", dag.TypeDef().WithKind(Stringkind)).WithArg("name", dag.TypeDef().WithKind(Stringkind))).WithFunction(dag.NewFunction("PutSecret", dag.TypeDef().WithObject("Secretsmanager")).WithArg("name", dag.TypeDef().WithKind(Stringkind)).WithArg("value", dag.TypeDef().WithKind(Stringkind))).WithField("Key", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""}).WithField("Secret", dag.TypeDef().WithKind(Stringkind), TypeDefWithFieldOpts{Description: ""})), nil
 	default:
 		return nil, fmt.Errorf("unknown object %s", parentName)
 	}
