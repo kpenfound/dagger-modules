@@ -9,9 +9,6 @@ import (
 
 type Zenith struct{}
 
-func (m *Zenith) MyFunction(ctx context.Context, stringArg string) (*Container, error) {
-	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg}).Sync(ctx)
-}
 func (m *Zenith) Update(ctx context.Context, repo string, operatingSystem string) (*File, error) {
 	ts := time.Now().Unix()
 	semver := fmt.Sprintf("v0.0.%d", ts) // Wanted to do 0.0.0+{ts}, but dockerhub does not allow + semver metadata

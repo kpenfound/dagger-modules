@@ -4339,21 +4339,6 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 	switch parentName {
 	case "Zenith":
 		switch fnName {
-		case "MyFunction":
-			var err error
-			var parent Zenith
-			err = json.Unmarshal(parentJSON, &parent)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			var stringArg string
-			err = json.Unmarshal([]byte(inputArgs["stringArg"]), &stringArg)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(2)
-			}
-			return (*Zenith).MyFunction(&parent, ctx, stringArg)
 		case "Update":
 			var err error
 			var parent Zenith
@@ -4383,12 +4368,8 @@ func invoke(ctx context.Context, parentJSON []byte, parentName string, fnName st
 			WithObject(
 				dag.TypeDef().WithObject("Zenith").
 					WithFunction(
-						dag.NewFunction("MyFunction",
-							dag.TypeDef().WithObject("Container")).
-							WithArg("stringArg", dag.TypeDef().WithKind(Stringkind))).
-					WithFunction(
 						dag.NewFunction("Update",
-							dag.TypeDef().WithKind(Stringkind)).
+							dag.TypeDef().WithObject("File")).
 							WithArg("repo", dag.TypeDef().WithKind(Stringkind)).
 							WithArg("operatingSystem", dag.TypeDef().WithKind(Stringkind)))), nil
 	default:
