@@ -15,6 +15,8 @@ import (
 type Executor struct {
 	ctx    context.Context
 	client *Client
+	dir    *Directory
+	logs   []string
 }
 
 func newExecutor(ctx context.Context) *Executor {
@@ -24,20 +26,23 @@ func newExecutor(ctx context.Context) *Executor {
 	}
 }
 
-func setup(ctx context.Context) (*circle.Config, *Executor, error) {
+func setup(ctx context.Context, dir *Directory) (*circle.Config, *Executor, error) {
 	executor := newExecutor(ctx)
-	cfg, err := circle.ReadConfig(CONFIG)
+	cfgFile, err := dir.File(CONFIG).Contents(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	cfg, err := circle.ParseConfig(cfgFile)
 
 	return cfg, executor, err
 }
 
 func (e *Executor) executeJob(name string, job *circle.Job) error {
 	fmt.Printf("running job %s\n", name)
-	src := e.client.Host().Directory(".")
 	runner := e.client.Container().
 		Pipeline(name).
 		From(job.Docker[0].Image).
-		WithMountedDirectory("/src", src).
+		WithMountedDirectory("/src", e.dir).
 		WithWorkdir("/src").
 		WithNewFile("/envfile", ContainerWithNewFileOpts{
 			Permissions: 0777,
@@ -48,8 +53,12 @@ func (e *Executor) executeJob(name string, job *circle.Job) error {
 	for _, s := range job.Steps {
 		runner = StepToDagger(s, runner, map[string]string{})
 	}
-	_, err := runner.Sync(e.ctx)
-	return err
+	out, err := runner.Stdout(e.ctx)
+	if err != nil {
+		return err
+	}
+	e.logs = append(e.logs, out)
+	return nil
 }
 
 func (e *Executor) executeWorkflow(name string, workflow *circle.Workflow, jobs map[string]*circle.Job) error {

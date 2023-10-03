@@ -75,6 +75,14 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
+func ParseConfig(contents string) (*Config, error) {
+	byts := []byte(contents)
+	var configParsed *Config
+	err := yaml.Unmarshal(byts, &configParsed)
+
+	return configParsed, err
+}
+
 func ReadConfig(path string) (*Config, error) {
 	configBytes, err := os.ReadFile(path)
 	if err != nil {
