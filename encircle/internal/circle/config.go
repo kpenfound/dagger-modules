@@ -1,7 +1,7 @@
-package main
+package circle
 
 import (
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v3"
 )
@@ -10,23 +10,23 @@ import (
 var Glorbs = map[string]*Orb{}
 
 type Config struct {
-	Version   string               `yaml:"version"`
-	Jobs      map[string]*Job      `yaml:"jobs"`
-	Workflows map[string]*Workflow `yaml:"workflows"`
-	Orbs      map[string]*Orb      `yaml:"orbs"`
+	version   string               `yaml:"version"`
+	jobs      map[string]*Job      `yaml:"jobs"`
+	workflows map[string]*Workflow `yaml:"workflows"`
+	orbs      map[string]*Orb      `yaml:"orbs"`
 }
 
 type Job struct {
-	Docker []*Docker `yaml:"docker"`
-	Steps  []*Step   `yaml:"steps"`
+	docker []*Docker `yaml:"docker"`
+	steps  []*Step   `yaml:"steps"`
 }
 
 type Workflow struct {
-	Jobs []string `yaml:"jobs"`
+	jobs []string `yaml:"jobs"`
 }
 
 type Docker struct {
-	Image string `yaml:"image"`
+	image string `yaml:"image"`
 }
 
 // Custom parser because orbs have to be evaluated before jobs
@@ -41,7 +41,7 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 
 	// config.Version
 	if nodes["version"] != nil {
-		err := nodes["version"].Decode(&c.Version)
+		err := nodes["version"].Decode(&c.version)
 		if err != nil {
 			return err
 		}
@@ -49,16 +49,16 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 
 	// config.Orbs
 	if nodes["orbs"] != nil {
-		err := nodes["orbs"].Decode(&c.Orbs)
+		err := nodes["orbs"].Decode(&c.orbs)
 		if err != nil {
 			return err
 		}
 	}
-	Glorbs = c.Orbs
+	Glorbs = c.orbs
 
 	// config.Jobs
 	if nodes["jobs"] != nil {
-		err := nodes["jobs"].Decode(&c.Jobs)
+		err := nodes["jobs"].Decode(&c.jobs)
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 
 	// config.Workflows
 	if nodes["workflows"] != nil {
-		err := nodes["workflows"].Decode(&c.Workflows)
+		err := nodes["workflows"].Decode(&c.workflows)
 		if err != nil {
 			return err
 		}
@@ -75,8 +75,8 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func readConfig(path string) (*Config, error) {
-	configBytes, err := ioutil.ReadFile(path)
+func ReadConfig(path string) (*Config, error) {
+	configBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

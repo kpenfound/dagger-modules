@@ -1,4 +1,4 @@
-module encircle
+module github.com/kpenfound/dagger-modules/encircle
 
 go 1.21.1
 

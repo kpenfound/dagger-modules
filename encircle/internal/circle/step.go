@@ -1,4 +1,4 @@
-package main
+package circle
 
 import (
 	"crypto/sha1"
@@ -7,64 +7,65 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kpenfound/dagger-modules/encircle"
 	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v3"
 )
 
 type Step struct {
-	Name    string `yaml:"name"`
-	Run     *Run   `yaml:"run"`
-	Command *OrbCommandExecution
-	WorkDir string `yaml:"working_directory"`
+	name    string `yaml:"name"`
+	run     *Run   `yaml:"run"`
+	command *OrbCommandExecution
+	workDir string `yaml:"working_directory"`
 }
 
 type Run struct {
-	Name        string            `yaml:"name"`
-	Command     string            `yaml:"command"`
-	Environment map[string]string `yaml:"environment"`
+	name        string            `yaml:"name"`
+	command     string            `yaml:"command"`
+	environment map[string]string `yaml:"environment"`
 }
 
 type OrbCommandExecution struct {
-	OrbCommand *OrbCommand
-	Parameters map[string]string
+	orbCommand *OrbCommand
+	parameters map[string]string
 }
 
-func (s *Step) ToDagger(c *Container, params map[string]string) *Container {
-	c = c.Pipeline(s.Name)
-	if s.WorkDir != "" { // workdir relative to project root
-		c = c.WithWorkdir(filepath.Join("/src", s.WorkDir))
+func (s *Step) toDagger(c *encircle.Container, params map[string]string) *encircle.Container {
+	c = c.Pipeline(s.name)
+	if s.workDir != "" { // workdir relative to project root
+		c = c.WithWorkdir(filepath.Join("/src", s.workDir))
 	}
-	if s.Run != nil {
-		c = s.Run.ToDagger(c, params)
+	if s.run != nil {
+		c = s.run.toDagger(c, params)
 	}
-	if s.Command != nil {
+	if s.command != nil {
 		// Get default params
-		maps.Copy(params, s.Command.OrbCommand.GetDefaultParameters())
+		maps.Copy(params, s.command.orbCommand.getDefaultParameters())
 		// Override user params
-		maps.Copy(params, s.Command.Parameters)
-		c = s.Command.OrbCommand.ToDagger(c, params)
+		maps.Copy(params, s.command.parameters)
+		c = s.command.orbCommand.toDagger(c, params)
 	}
 
 	return c
 }
 
-func (r *Run) ToDagger(c *Container, params map[string]string) *Container {
-	c = c.Pipeline(ReplaceParams(r.Name, params))
+func (r *Run) toDagger(c *encircle.Container, params map[string]string) *encircle.Container {
+	c = c.Pipeline(replaceParams(r.name, params))
 	// Set env vars
-	for k, v := range r.Environment {
-		c = c.WithEnvVariable(k, ReplaceParams(v, params))
+	for k, v := range r.environment {
+		c = c.WithEnvVariable(k, replaceParams(v, params))
 	}
 	// Exec command
-	command := ReplaceParams(r.Command, params)
+	command := replaceParams(r.command, params)
 	command = fmt.Sprintf("#!/bin/bash\n%s", command)
 	script := fmt.Sprintf("/%s.sh", getSha(command))
-	c = c.WithNewFile(script, ContainerWithNewFileOpts{
+	c = c.WithNewFile(script, encircle.ContainerWithNewFileOpts{
 		Permissions: 0777,
 		Contents:    command,
 	})
 	c = c.WithExec([]string{script})
 	// Unset env vars
-	for k := range r.Environment {
+	for k := range r.environment {
 		c = c.WithoutEnvVariable(k)
 	}
 	return c
@@ -80,8 +81,8 @@ func (s *Step) UnmarshalYAML(value *yaml.Node) error {
 			commandParts := strings.Split(value.Content[0].Value, "/")
 			orb := commandParts[0]
 			command := commandParts[1]
-			s.Command = &OrbCommandExecution{
-				OrbCommand: findCommandForOrb(orb, command),
+			s.command = &OrbCommandExecution{
+				orbCommand: findCommandForOrb(orb, command),
 			}
 		} else {
 			fmt.Printf("warning: unknown step command: %s\n", value.Value)
@@ -99,13 +100,13 @@ func (s *Step) UnmarshalYAML(value *yaml.Node) error {
 				if err != nil {
 					return err
 				}
-				s.Run = r
+				s.run = r
 			}
 			// inline run
 			if value.Content[1].Tag == "!!str" {
 				r := &Run{}
-				r.Command = value.Content[1].Value
-				s.Run = r
+				r.command = value.Content[1].Value
+				s.run = r
 			}
 
 			// handle orb command with params
@@ -113,8 +114,8 @@ func (s *Step) UnmarshalYAML(value *yaml.Node) error {
 			commandParts := strings.Split(value.Content[0].Value, "/")
 			orb := commandParts[0]
 			command := commandParts[1]
-			s.Command = &OrbCommandExecution{
-				OrbCommand: findCommandForOrb(orb, command),
+			s.command = &OrbCommandExecution{
+				orbCommand: findCommandForOrb(orb, command),
 			}
 
 			// parse params
@@ -125,7 +126,7 @@ func (s *Step) UnmarshalYAML(value *yaml.Node) error {
 					v := value.Content[1].Content[i+1].Value
 					params[k] = v
 				}
-				s.Command.Parameters = params
+				s.command.parameters = params
 			}
 		} else {
 			fmt.Printf("warning: unhandled command %s\n", value.Content[0].Value)
@@ -138,13 +139,13 @@ func (s *Step) UnmarshalYAML(value *yaml.Node) error {
 
 func findCommandForOrb(orb string, command string) *OrbCommand {
 	if Glorbs[orb] != nil {
-		return Glorbs[orb].Orb.Commands[command]
+		return Glorbs[orb].orb.commands[command]
 	}
 	fmt.Println("didnt find orb")
 	return nil
 }
 
-func ReplaceParams(target string, params map[string]string) string {
+func replaceParams(target string, params map[string]string) string {
 	if strings.Contains(target, "<< parameters.") || strings.Contains(target, "<<parameters.") {
 		for k, v := range params {
 			p1 := fmt.Sprintf("<< parameters.%s >>", k)

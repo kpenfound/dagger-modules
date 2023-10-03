@@ -3,26 +3,35 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"github.com/kpenfound/dagger-modules/encircle/internal/circle"
 )
 
 type Executor struct {
-	Ctx    context.Context
-	Client *Client
+	ctx    context.Context
+	client *Client
 }
 
-func NewExecutor(ctx context.Context) *Executor {
+func newExecutor(ctx context.Context) *Executor {
 	return &Executor{
-		Ctx:    ctx,
-		Client: dag,
+		ctx:    ctx,
+		client: dag,
 	}
 }
 
-func (e *Executor) ExecuteJob(name string, job *Job) error {
+func setup(ctx context.Context) (*circle.Config, *Executor, error) {
+	executor := newExecutor(ctx)
+	cfg, err := circle.ReadConfig(CONFIG)
+
+	return cfg, executor, err
+}
+
+func (e *Executor) executeJob(name string, job *circle.Job) error {
 	fmt.Printf("running job %s\n", name)
-	src := e.Client.Host().Directory(".")
-	runner := e.Client.Container().
+	src := e.client.Host().Directory(".")
+	runner := e.client.Container().
 		Pipeline(name).
-		From(job.Docker[0].Image).
+		From(job.docker[0].image).
 		WithMountedDirectory("/src", src).
 		WithWorkdir("/src").
 		WithNewFile("/envfile", ContainerWithNewFileOpts{
@@ -31,17 +40,17 @@ func (e *Executor) ExecuteJob(name string, job *Job) error {
 		}).
 		WithEnvVariable("BASH_ENV", "/envfile")
 
-	for _, s := range job.Steps {
-		runner = s.ToDagger(runner, map[string]string{})
+	for _, s := range job.steps {
+		runner = s.toDagger(runner, map[string]string{})
 	}
-	_, err := runner.Sync(e.Ctx)
+	_, err := runner.Sync(e.ctx)
 	return err
 }
 
-func (e *Executor) ExecuteWorkflow(name string, workflow *Workflow, jobs map[string]*Job) error {
+func (e *Executor) executeWorkflow(name string, workflow *circle.Workflow, jobs map[string]*circle.Job) error {
 	fmt.Printf("running workflow %s\n", name)
-	for _, jobName := range workflow.Jobs {
-		err := e.ExecuteJob(jobName, jobs[jobName])
+	for _, jobName := range workflow.jobs {
+		err := e.executeJob(jobName, jobs[jobName])
 		if err != nil {
 			return err
 		}

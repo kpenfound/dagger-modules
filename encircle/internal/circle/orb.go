@@ -1,4 +1,4 @@
-package main
+package circle
 
 import (
 	"bytes"
@@ -7,49 +7,50 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kpenfound/dagger-modules/encircle"
 	"gopkg.in/yaml.v3"
 )
 
 type Orb struct {
-	Name string
-	Orb  *OrbConfig
+	name string
+	orb  *OrbConfig
 }
 
 type OrbConfig struct {
-	Version     string `yaml:"version"`
-	Description string `yaml:"description"`
+	version     string `yaml:"version"`
+	description string `yaml:"description"`
 	//	Jobs      map[string]*OrbJob         `yaml:"jobs"` // TODO
-	Commands map[string]*OrbCommand `yaml:"commands"`
+	commands map[string]*OrbCommand `yaml:"commands"`
 	// Executors map[string]*OrbExecutor `yaml:"executors"` // TODO
 }
 
 type OrbCommand struct {
-	Steps      []*Step                  `yaml:"steps"`
-	Parameters map[string]*OrbParameter `yaml:"parameters"`
+	steps      []*Step                  `yaml:"steps"`
+	parameters map[string]*OrbParameter `yaml:"parameters"`
 }
 
 type OrbParameter struct {
-	DefaultValue string   `yaml:"default"`
-	Description  string   `yaml:"description"`
-	ParamType    string   `yaml:"type"`
-	Enum         []string `yaml:"enum"`
+	defaultValue string   `yaml:"default"`
+	description  string   `yaml:"description"`
+	paramType    string   `yaml:"type"`
+	enum         []string `yaml:"enum"`
 }
 
 // type OrbJob struct{} // TODO
 // type OrbExecutor struct{}
 
-func (oc *OrbCommand) ToDagger(c *Container, params map[string]string) *Container {
+func (oc *OrbCommand) toDagger(c *encircle.Container, params map[string]string) *encircle.Container {
 	// TODO: handle params?
-	for _, s := range oc.Steps {
-		c = s.ToDagger(c, params)
+	for _, s := range oc.steps {
+		c = s.toDagger(c, params)
 	}
 	return c
 }
 
-func (oc *OrbCommand) GetDefaultParameters() map[string]string {
+func (oc *OrbCommand) getDefaultParameters() map[string]string {
 	defaults := map[string]string{}
-	for k, v := range oc.Parameters {
-		defaults[k] = v.DefaultValue
+	for k, v := range oc.parameters {
+		defaults[k] = v.defaultValue
 	}
 	return defaults
 }
@@ -64,8 +65,8 @@ func (o *Orb) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	o.Orb = orb
-	o.Name = value.Value
+	o.orb = orb
+	o.name = value.Value
 	return nil
 }
 
