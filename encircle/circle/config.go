@@ -10,23 +10,23 @@ import (
 var Glorbs = map[string]*Orb{}
 
 type Config struct {
-	version   string               `yaml:"version"`
-	jobs      map[string]*Job      `yaml:"jobs"`
-	workflows map[string]*Workflow `yaml:"workflows"`
-	orbs      map[string]*Orb      `yaml:"orbs"`
+	Version   string               `yaml:"version"`
+	Jobs      map[string]*Job      `yaml:"jobs"`
+	Workflows map[string]*Workflow `yaml:"workflows"`
+	Orbs      map[string]*Orb      `yaml:"orbs"`
 }
 
 type Job struct {
-	docker []*Docker `yaml:"docker"`
-	steps  []*Step   `yaml:"steps"`
+	Docker []*Docker `yaml:"docker"`
+	Steps  []*Step   `yaml:"steps"`
 }
 
 type Workflow struct {
-	jobs []string `yaml:"jobs"`
+	Jobs []string `yaml:"jobs"`
 }
 
 type Docker struct {
-	image string `yaml:"image"`
+	Image string `yaml:"image"`
 }
 
 // Custom parser because orbs have to be evaluated before jobs
@@ -41,7 +41,7 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 
 	// config.Version
 	if nodes["version"] != nil {
-		err := nodes["version"].Decode(&c.version)
+		err := nodes["version"].Decode(&c.Version)
 		if err != nil {
 			return err
 		}
@@ -49,16 +49,16 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 
 	// config.Orbs
 	if nodes["orbs"] != nil {
-		err := nodes["orbs"].Decode(&c.orbs)
+		err := nodes["orbs"].Decode(&c.Orbs)
 		if err != nil {
 			return err
 		}
 	}
-	Glorbs = c.orbs
+	Glorbs = c.Orbs
 
 	// config.Jobs
 	if nodes["jobs"] != nil {
-		err := nodes["jobs"].Decode(&c.jobs)
+		err := nodes["jobs"].Decode(&c.Jobs)
 		if err != nil {
 			return err
 		}
@@ -66,7 +66,7 @@ func (c *Config) UnmarshalYAML(value *yaml.Node) error {
 
 	// config.Workflows
 	if nodes["workflows"] != nil {
-		err := nodes["workflows"].Decode(&c.workflows)
+		err := nodes["workflows"].Decode(&c.Workflows)
 		if err != nil {
 			return err
 		}

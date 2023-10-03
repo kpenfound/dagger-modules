@@ -18,7 +18,7 @@ func (d *Directory) EncircleJob(ctx context.Context, job string) error {
 		return err
 	}
 
-	err = executor.executeJob(job, cfg.jobs[job])
+	err = executor.executeJob(job, cfg.Jobs[job])
 	if err != nil {
 		return err
 	}
@@ -32,17 +32,10 @@ func (d *Directory) EncircleWorkflow(ctx context.Context, workflow string) error
 		return err
 	}
 
-	err = executor.executeWorkflow(workflow, cfg.workflows[workflow], cfg.jobs)
+	err = executor.executeWorkflow(workflow, cfg.Workflows[workflow], cfg.Jobs)
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func setup(ctx context.Context) (*Config, *Executor, error) {
-	executor := newExecutor(ctx)
-	cfg, err := readConfig(CONFIG)
-
-	return cfg, executor, err
 }

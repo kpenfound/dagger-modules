@@ -7,50 +7,41 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/kpenfound/dagger-modules/encircle"
 	"gopkg.in/yaml.v3"
 )
 
 type Orb struct {
-	name string
-	orb  *OrbConfig
+	Name string
+	Orb  *OrbConfig
 }
 
 type OrbConfig struct {
-	version     string `yaml:"version"`
-	description string `yaml:"description"`
+	Version     string `yaml:"version"`
+	Description string `yaml:"description"`
 	//	Jobs      map[string]*OrbJob         `yaml:"jobs"` // TODO
-	commands map[string]*OrbCommand `yaml:"commands"`
+	Commands map[string]*OrbCommand `yaml:"commands"`
 	// Executors map[string]*OrbExecutor `yaml:"executors"` // TODO
 }
 
 type OrbCommand struct {
-	steps      []*Step                  `yaml:"steps"`
-	parameters map[string]*OrbParameter `yaml:"parameters"`
+	Steps      []*Step                  `yaml:"steps"`
+	Parameters map[string]*OrbParameter `yaml:"parameters"`
 }
 
 type OrbParameter struct {
-	defaultValue string   `yaml:"default"`
-	description  string   `yaml:"description"`
-	paramType    string   `yaml:"type"`
-	enum         []string `yaml:"enum"`
+	DefaultValue string   `yaml:"default"`
+	Description  string   `yaml:"description"`
+	ParamType    string   `yaml:"type"`
+	Enum         []string `yaml:"enum"`
 }
 
 // type OrbJob struct{} // TODO
 // type OrbExecutor struct{}
 
-func (oc *OrbCommand) toDagger(c *encircle.Container, params map[string]string) *encircle.Container {
-	// TODO: handle params?
-	for _, s := range oc.steps {
-		c = s.toDagger(c, params)
-	}
-	return c
-}
-
-func (oc *OrbCommand) getDefaultParameters() map[string]string {
+func (oc *OrbCommand) GetDefaultParameters() map[string]string {
 	defaults := map[string]string{}
-	for k, v := range oc.parameters {
-		defaults[k] = v.defaultValue
+	for k, v := range oc.Parameters {
+		defaults[k] = v.DefaultValue
 	}
 	return defaults
 }
@@ -65,8 +56,8 @@ func (o *Orb) UnmarshalYAML(value *yaml.Node) error {
 	if err != nil {
 		return err
 	}
-	o.orb = orb
-	o.name = value.Value
+	o.Orb = orb
+	o.Name = value.Value
 	return nil
 }
 
