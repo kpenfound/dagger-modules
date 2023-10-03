@@ -1,4 +1,4 @@
-module github.com/dagger-modules/encircle/internal/circle
+module github.com/kpenfound/dagger-modules/encircle/internal/circle
 
 go 1.21.1
 
