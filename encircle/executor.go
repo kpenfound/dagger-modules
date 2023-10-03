@@ -53,12 +53,13 @@ func (e *Executor) executeJob(name string, job *circle.Job) error {
 
 	for _, s := range job.Steps {
 		runner = StepToDagger(s, runner, map[string]string{})
+		out, err := runner.Stdout(e.ctx)
+		if err != nil {
+			return err
+		}
+		e.logs = append(e.logs, out)
 	}
-	out, err := runner.Stdout(e.ctx)
-	if err != nil {
-		return err
-	}
-	e.logs = append(e.logs, out)
+
 	return nil
 }
 

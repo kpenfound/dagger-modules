@@ -2,7 +2,7 @@ query {
   git(url:"github.com/kpenfound/encircle") {
     branch(name:"main") {
       tree {
-        encircleWorkflow(workflow:"test_two")
+        encircleWorkflow(workflow:"test")
       }
     }
   }
