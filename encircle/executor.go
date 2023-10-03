@@ -19,15 +19,16 @@ type Executor struct {
 	logs   []string
 }
 
-func newExecutor(ctx context.Context) *Executor {
+func newExecutor(ctx context.Context, dir *Directory) *Executor {
 	return &Executor{
 		ctx:    ctx,
 		client: dag,
+		dir:    dir,
 	}
 }
 
 func setup(ctx context.Context, dir *Directory) (*circle.Config, *Executor, error) {
-	executor := newExecutor(ctx)
+	executor := newExecutor(ctx, dir)
 	cfgFile, err := dir.File(CONFIG).Contents(ctx)
 	if err != nil {
 		return nil, nil, err
