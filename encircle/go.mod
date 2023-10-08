@@ -2,6 +2,8 @@ module github.com/kpenfound/dagger-modules/encircle
 
 go 1.21.1
 
+toolchain go1.21.2
+
 require (
 	github.com/99designs/gqlgen v0.17.31
 	github.com/Khan/genqlient v0.6.0
