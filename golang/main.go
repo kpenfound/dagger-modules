@@ -8,17 +8,15 @@ import (
 type Golang struct {}
 
 func (m *Golang) Base(ctx context.Context, version string) (*Container, error) {
-	cache := dag.CacheVolume("gomodcache")
+	mod := dag.CacheVolume("gomodcache")
+	build := dag.CacheVolume("gobuildcache")
 	image := fmt.Sprintf("golang:%s", version)
 	return dag.Container().
 	From(image).
-	WithMountedCache("/gomodcache", cache).
-	WithEnvVariable("GOMODCACHE", "/gomodcache").Sync(ctx)
+	WithMountedCache("/go/pkg/mod", mod).
+	WithMountedCache("/root/.cache/go-build", build).
+	Sync(ctx)
 }
-
-func (m *Golang) Foo(ctx context.Context) (*Directory, error) {
-	return nil, nil
-} 
 
 func (c *Container) GoBuild(ctx context.Context, args []string) (*Container, error) {
 	command := append([]string{"go", "build"}, args...)
