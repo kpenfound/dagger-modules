@@ -18,28 +18,17 @@ func (m *Golang) Base(ctx context.Context, version string) (*Container, error) {
 	Sync(ctx)
 }
 
-func (c *Container) GoBuild(ctx context.Context, args []string) (*Container, error) {
+func (g *Golang) Build(ctx context.Context, c *Container, args []string) (*Container, error) {
 	command := append([]string{"go", "build"}, args...)
 	return c.WithExec(command).Sync(ctx)
 }
 
-func (c *Container) GoTest(ctx context.Context, args []string) (*Container, error) {
+func (g *Golang) Test(ctx context.Context, c *Container, args []string) (*Container, error) {
 	command := append([]string{"go", "test"}, args...)
 	return c.WithExec(command).Sync(ctx)
 }
 
-func (d *Directory) GoTest(ctx context.Context, args []string) (*Container, error) {
-	command := append([]string{"go", "test"}, args...)
-	c, err := (&Golang{}).Base(ctx, "latest")
-	c = c.WithMountedDirectory("/src", d).
-		WithWorkdir("/src")
-	if err != nil {
-		return nil, err
-	}
-	return c.WithExec(command).Sync(ctx)
-}
-
-func (d *Directory) GoLint(ctx context.Context) (string, error) {
+func (g *Golang) GolangciLint(ctx context.Context, d *Directory) (string, error) {
 	return dag.Container().From("golangci/golangci-lint:v1.48").
 		WithMountedDirectory("/src", d).
 		WithWorkdir("/src").
