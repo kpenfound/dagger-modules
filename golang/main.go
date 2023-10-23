@@ -6,13 +6,22 @@ import (
 	"context"
 )
 
-const DEFAULT_GO = "1.21"
+const (
+	DEFAULT_GO = "1.21"
+	PROJ_MOUNT = "/src"
+)
 
 type Golang struct {
 	Ctr *Container
-	Project *Directory
+	Proj *Directory
 }
 
+func (g *Golang) Container() *Container {
+	return g.Ctr
+}
+func (g *Golang) Project() *Directory {
+	return g.Ctr.Directory(PROJ_MOUNT)
+}
 
 func (g *Golang) Base(ctx context.Context, version string) (*Golang, error) {
 	mod := dag.CacheVolume("gomodcache")
@@ -31,17 +40,17 @@ func (g *Golang) Base(ctx context.Context, version string) (*Golang, error) {
 }
 
 func (g *Golang) WithProject(d *Directory) (*Golang) {
-	g.Project = d
+	g.Proj = d
 	return g
 }
 
 func (g *Golang) Build(ctx context.Context, args []string) (*Golang, error) {
-	g, err := g.checkReadiness(ctx)
+	c, err := g.prepare(ctx)
 	if err != nil {
 		return nil, err
 	}
 	command := append([]string{"go", "build"}, args...)
-	c, err := g.Ctr.WithExec(command).Sync(ctx)
+	c, err = c.WithExec(command).Sync(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +59,12 @@ func (g *Golang) Build(ctx context.Context, args []string) (*Golang, error) {
 }
 
 func (g *Golang) Test(ctx context.Context, args []string) (*Golang, error) {
-	g, err := g.checkReadiness(ctx)
+	c, err := g.prepare(ctx)
 	if err != nil {
 		return nil, err
 	}
 	command := append([]string{"go", "test"}, args...)
-	c, err := g.Ctr.WithExec(command).Sync(ctx)
+	c, err = c.WithExec(command).Sync(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +73,12 @@ func (g *Golang) Test(ctx context.Context, args []string) (*Golang, error) {
 }
 
 func (g *Golang) GolangciLint(ctx context.Context) (*Golang, error) {
-	_, err := g.checkReadiness(ctx) // Dont override g here
+	_, err := g.prepare(ctx)
 	if err != nil {
 		return nil, err
 	}
 	_, err = dag.Container().From("golangci/golangci-lint:v1.48").
-		WithMountedDirectory("/src", g.Project).
+		WithMountedDirectory("/src", g.Proj).
 		WithWorkdir("/src").
 		WithExec([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}).
 		Sync(ctx)
@@ -79,8 +88,8 @@ func (g *Golang) GolangciLint(ctx context.Context) (*Golang, error) {
 	return g, nil
 }
 
-func (g *Golang) checkReadiness(ctx context.Context) (*Golang, error) {
-	if g.Project == nil {
+func (g *Golang) prepare(ctx context.Context) (*Container, error) {
+	if g.Proj == nil {
 		return nil, errors.New("Golang: Project is not set. Must call WithProject before executing")
 	}
 
@@ -91,6 +100,10 @@ func (g *Golang) checkReadiness(ctx context.Context) (*Golang, error) {
 		}
 		g = gd
 	}
-	return g, nil
+
+	c := g.Ctr.
+	WithDirectory(PROJ_MOUNT, g.Proj).
+	WithWorkdir(PROJ_MOUNT)
+	return c, nil
 }
 
