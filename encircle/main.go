@@ -13,7 +13,7 @@ func (m *Encircle) MyFunction(ctx context.Context, stringArg string) (*Container
 	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg}).Sync(ctx)
 }
 
-func (d *Directory) EncircleJob(ctx context.Context, job string) (string, error) {
+func (e *Encircle) EncircleJob(ctx context.Context, d *Directory, job string) (string, error) {
 	cfg, executor, err := setup(ctx, d)
 	if err != nil {
 		return "", err
@@ -27,7 +27,7 @@ func (d *Directory) EncircleJob(ctx context.Context, job string) (string, error)
 	return strings.Join(executor.logs, "\n"), nil
 }
 
-func (d *Directory) EncircleWorkflow(ctx context.Context, workflow string) (string, error) {
+func (e *Encircle) EncircleWorkflow(ctx context.Context, d *Directory, workflow string) (string, error) {
 
 	cfg, executor, err := setup(ctx, d)
 	if err != nil {
