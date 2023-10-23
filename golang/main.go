@@ -16,13 +16,17 @@ type Golang struct {
 	Proj *Directory
 }
 
+// Accessor for the Container
 func (g *Golang) Container() *Container {
 	return g.Ctr
 }
+
+// Accessor for the Project
 func (g *Golang) Project() *Directory {
 	return g.Ctr.Directory(PROJ_MOUNT)
 }
 
+// Sets up the Container with a golang image and cache volumes
 func (g *Golang) Base(ctx context.Context, version string) (*Golang, error) {
 	mod := dag.CacheVolume("gomodcache")
 	build := dag.CacheVolume("gobuildcache")
@@ -39,11 +43,19 @@ func (g *Golang) Base(ctx context.Context, version string) (*Golang, error) {
 	return g, nil
 }
 
+// Specify the Project to use in the module
 func (g *Golang) WithProject(d *Directory) (*Golang) {
 	g.Proj = d
 	return g
 }
 
+// Bring your own container
+func (g *Golang) WithContainer(c *Container) (*Golang) {
+	g.Ctr = c
+	return g
+}
+
+// Build the project
 func (g *Golang) Build(ctx context.Context, args []string) (*Golang, error) {
 	c, err := g.prepare(ctx)
 	if err != nil {
@@ -58,6 +70,7 @@ func (g *Golang) Build(ctx context.Context, args []string) (*Golang, error) {
 	return g, nil
 }
 
+// Test the project
 func (g *Golang) Test(ctx context.Context, args []string) (*Golang, error) {
 	c, err := g.prepare(ctx)
 	if err != nil {
@@ -72,6 +85,7 @@ func (g *Golang) Test(ctx context.Context, args []string) (*Golang, error) {
 	return g, nil
 }
 
+// Lint the project
 func (g *Golang) GolangciLint(ctx context.Context) (*Golang, error) {
 	_, err := g.prepare(ctx)
 	if err != nil {
@@ -88,6 +102,7 @@ func (g *Golang) GolangciLint(ctx context.Context) (*Golang, error) {
 	return g, nil
 }
 
+// Private func to check readiness and prepare the container for build/test/lint
 func (g *Golang) prepare(ctx context.Context) (*Container, error) {
 	if g.Proj == nil {
 		return nil, errors.New("Golang: Project is not set. Must call WithProject before executing")
