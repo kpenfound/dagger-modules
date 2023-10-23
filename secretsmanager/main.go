@@ -19,14 +19,14 @@ func (m *Secretsmanager) Auth(key, secret string) *Secretsmanager {
 	return m
 }
 
-func (m *Secretsmanager) GetSecret(name string) (string, error) {
+func (m *Secretsmanager) GetSecret(name string) (*Secret, error) {
 	config := &aws.Config{
 		Region:      aws.String("us-east-1"),
 		Credentials: credentials.NewStaticCredentials(m.Key, m.Secret, ""),
 	}
 	sess, err := session.NewSession(config)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	svc := awssm.New(sess)
 
@@ -36,9 +36,10 @@ func (m *Secretsmanager) GetSecret(name string) (string, error) {
 
 	value, err := svc.GetSecretValue(input)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return *(value.SecretString), nil
+	dagSecret := dag.SetSecret(name, *(value.SecretString))
+	return dagSecret, nil
 }
 
 func (m *Secretsmanager) PutSecret(name, value string) (*Secretsmanager, error) {
@@ -61,17 +62,3 @@ func (m *Secretsmanager) PutSecret(name, value string) (*Secretsmanager, error) 
 	return m, err
 }
 
-func (c *Container) WithAWSSecret(key, secret, name, envName string) (*Container, error) {
-	sm := &Secretsmanager{
-		Key:    key,
-		Secret: secret,
-	}
-
-	s, err := sm.GetSecret(name)
-	if err != nil {
-		return nil, err
-	}
-
-	dagSecret := dag.SetSecret(envName, s)
-	return c.WithSecretVariable(envName, dagSecret), nil
-}

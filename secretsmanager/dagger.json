@@ -1,5 +1,4 @@
 {
-  "root": "",
   "name": "secretsmanager",
   "sdk": "go"
 }
