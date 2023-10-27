@@ -26,6 +26,11 @@ async def additional_proxy(ctr: dagger.Container, svc: dagger.Service, name: str
 
     return ctr
 
+#function
+async def service(ctr: dagger.Container) -> dagger.Service:
+    ctr = ctr.with_exec(["/docker-entrypoint.sh", "nginx", "-g", "daemon off;"])
+    return ctr.as_service()
+
 def get_config(port: int, name: str, frontend: int) -> str:
     return f'''
 server {{
