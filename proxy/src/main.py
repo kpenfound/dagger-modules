@@ -22,12 +22,12 @@ async def additional_proxy(ctr: dagger.Container, svc: dagger.Service, name: str
     cfg = get_config(port, name, frontend)
 
     ctr = ctr.with_service_binding(name, svc).with_exposed_port(frontend)
-    ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
+    ctr = ctr.with_exec(['sh', '-c', f'echo {cfg} >> {NGINX_CONFIG}'])
 
     return ctr
 
 def get_config(port: int, name: str, frontend: int) -> str:
-    return f'''
+    return f'''<< EOF
 server {{
     listen {frontend};
     listen [::]:{frontend};
@@ -39,4 +39,5 @@ server {{
         include proxy_params;
     }}
 }}
+EOF
     '''
