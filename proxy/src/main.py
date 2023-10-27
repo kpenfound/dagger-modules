@@ -5,7 +5,7 @@ NGINX_CONFIG = "/etc/nginx/conf.d/default.conf"
 
 @function
 async def proxy(svc: dagger.Service, name: str, frontend: int) -> dagger.Container:
-    ctr = dagger.container().from_("nginx").with_default_args(args: [])
+    ctr = dagger.container().from_("nginx").with_entrypoint(args: [])
     ports = await svc.ports()
     port = await ports[0].port()
     cfg = get_config(port, name, frontend)
