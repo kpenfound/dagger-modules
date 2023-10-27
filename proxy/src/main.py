@@ -35,7 +35,7 @@ server {{
     server_name {name};
 
     location / {{
-        proxy_pass tcp://{name}:{port};
+        proxy_pass http://{name}:{port};
         include proxy_params;
     }}
 }}'''
