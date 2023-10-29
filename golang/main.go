@@ -51,15 +51,15 @@ func (g *Golang) WithContainer(c *Container) (*Golang) {
 }
 
 // Build the project
-func (g *Golang) Build(ctx context.Context, args []string) *Directory {
+func (g *Golang) Build(args []string) *Directory {
 	command := append([]string{"go", "build"}, args...)
-	return g.prepare(ctx).WithExec(command).Directory(PROJ_MOUNT)
+	return g.prepare().WithExec(command).Directory(PROJ_MOUNT)
 }
 
 // Test the project
 func (g *Golang) Test(ctx context.Context, args []string) (string, error) {
 	command := append([]string{"go", "test"}, args...)
-	return g.prepare(ctx).WithExec(command).Stdout(ctx)
+	return g.prepare().WithExec(command).Stdout(ctx)
 }
 
 // Lint the project
@@ -72,7 +72,7 @@ func (g *Golang) GolangciLint(ctx context.Context) (string, error) {
 }
 
 // Private func to check readiness and prepare the container for build/test/lint
-func (g *Golang) prepare(ctx context.Context) *Container {
+func (g *Golang) prepare() *Container {
 	if g.Proj == nil {
 		g.Proj = dag.Directory() // Unsure about this. Maybe want to error
 	}
