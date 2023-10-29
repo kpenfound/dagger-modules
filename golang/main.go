@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"context"
 )
@@ -27,20 +26,16 @@ func (g *Golang) Project() *Directory {
 }
 
 // Sets up the Container with a golang image and cache volumes
-func (g *Golang) Base(ctx context.Context, version string) (*Golang, error) {
+func (g *Golang) Base(version string) *Golang {
 	mod := dag.CacheVolume("gomodcache")
 	build := dag.CacheVolume("gobuildcache")
 	image := fmt.Sprintf("golang:%s", version)
-	c, err := dag.Container().
+	c := dag.Container().
 	From(image).
 	WithMountedCache("/go/pkg/mod", mod).
-	WithMountedCache("/root/.cache/go-build", build).
-	Sync(ctx)
-	if err != nil {
-		return nil, err
-	}
+	WithMountedCache("/root/.cache/go-build", build)
 	g.Ctr = c
-	return g, nil
+	return g
 }
 
 // Specify the Project to use in the module
@@ -56,69 +51,40 @@ func (g *Golang) WithContainer(c *Container) (*Golang) {
 }
 
 // Build the project
-func (g *Golang) Build(ctx context.Context, args []string) (*Golang, error) {
-	c, err := g.prepare(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (g *Golang) Build(ctx context.Context, args []string) *Directory {
 	command := append([]string{"go", "build"}, args...)
-	c, err = c.WithExec(command).Sync(ctx)
-	if err != nil {
-		return nil, err
-	}
-	g.Ctr = c
-	return g, nil
+	return g.prepare(ctx).WithExec(command).Directory(PROJ_MOUNT)
 }
 
 // Test the project
-func (g *Golang) Test(ctx context.Context, args []string) (*Golang, error) {
-	c, err := g.prepare(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (g *Golang) Test(ctx context.Context, args []string) (string, error) {
 	command := append([]string{"go", "test"}, args...)
-	c, err = c.WithExec(command).Sync(ctx)
-	if err != nil {
-		return nil, err
-	}
-	g.Ctr = c
-	return g, nil
+	return g.prepare(ctx).WithExec(command).Stdout(ctx)
 }
 
 // Lint the project
-func (g *Golang) GolangciLint(ctx context.Context) (*Golang, error) {
-	_, err := g.prepare(ctx)
-	if err != nil {
-		return nil, err
-	}
-	_, err = dag.Container().From("golangci/golangci-lint:v1.48").
+func (g *Golang) GolangciLint(ctx context.Context) (string, error) {
+	return dag.Container().From("golangci/golangci-lint:v1.48").
 		WithMountedDirectory("/src", g.Proj).
 		WithWorkdir("/src").
 		WithExec([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}).
-		Sync(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return g, nil
+		Stdout(ctx)
 }
 
 // Private func to check readiness and prepare the container for build/test/lint
-func (g *Golang) prepare(ctx context.Context) (*Container, error) {
+func (g *Golang) prepare(ctx context.Context) *Container {
 	if g.Proj == nil {
-		return nil, errors.New("Golang: Project is not set. Must call WithProject before executing")
+		g.Proj = dag.Directory() // Unsure about this. Maybe want to error
 	}
 
 	if g.Ctr == nil {
-		gd, err := g.Base(ctx, DEFAULT_GO)
-		if err != nil {
-			return nil, err
-		}
-		g = gd
+		gd := g.Base(DEFAULT_GO)
+		g.Ctr = gd.Ctr
 	}
 
 	c := g.Ctr.
 	WithDirectory(PROJ_MOUNT, g.Proj).
 	WithWorkdir(PROJ_MOUNT)
-	return c, nil
+	return c
 }
 
