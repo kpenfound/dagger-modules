@@ -2,10 +2,10 @@ import dagger
 from dagger.mod import function
 
 @function
-def deploy(image: str, token: dagger.Secret) -> str:
+def deploy(app: str, image: str, token: dagger.Secret) -> str:
     return (
         fly_base(token)
-        .with_exec(["/root/.fly/bin/flyctl", "deploy", "--image", image])
+        .with_exec(["/root/.fly/bin/flyctl", "deploy", "--app", app, "--image", image])
     )
 
 def fly_base(token: dagger.Secret) -> dagger.Container:
