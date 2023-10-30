@@ -5,7 +5,7 @@ from dagger.mod import function
 def deploy(image: str, port: int, token: dagger.Secret) -> str:
     return (
         fly_base(token)
-        .with_exec(["fly", "deploy", "--image", image, "--internal-port", port])
+        .with_exec(["/root/.fly/bin/flyctl", "deploy", "--image", image, "--internal-port", port])
     )
 
 def fly_base(token: dagger.Secret) -> dagger.Container:
