@@ -33,7 +33,7 @@ def list(token: dagger.Secret) -> str:
 def netlify_base(token: dagger.Secret, site: str) -> dagger.Container:
     return (
         dagger.container().from_("node:21-alpine")
-        .with_exec(["npm", "install", "-g", CLI])
+        .with_exec(["npm", "install", "-g", CLI]).with_entrypoint([])
         .with_secret_variable("NETLIFY_AUTH_TOKEN", token)
         .with_env_variable("NETLIFY_SITE_ID", site)
     )
