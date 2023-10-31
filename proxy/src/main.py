@@ -3,6 +3,13 @@ from dagger.mod import Annotated, Doc, field, function, object_type
 
 NGINX_CONFIG = "/etc/nginx/conf.d/default.conf"
 
+def init() -> dagger.Container:
+    return (
+        dagger.container().from_("nginx")
+        .with_entrypoint([])
+        .with_exec(['sh', '-c', f'echo "" > {NGINX_CONFIG}'])
+    )
+
 @object_type
 class Proxy:
     """Forwards multiple services into a single service with multiple ports"""
@@ -34,13 +41,6 @@ class Proxy:
         """Get the proxy Service"""
         ctr = self.ctr.with_exec(["/docker-entrypoint.sh", "nginx", "-g", "daemon off;"])
         return ctr.as_service()
-
-def init() -> dagger.Container:
-    return (
-        dagger.container().from_("nginx")
-        .with_entrypoint([])
-        .with_exec(['sh', '-c', f'echo "" > {NGINX_CONFIG}'])
-    )
 
 def get_config(port: int, name: str, frontend: int) -> str:
     return f'''
