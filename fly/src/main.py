@@ -19,7 +19,7 @@ primary_region = "ord"
     '''
     return (
         fly_base(token)
-        .with_new_file("/fly.toml", config) # TODO: make more of these things options
+        .with_new_file(path="/fly.toml", contents=config) # TODO: make more of these things options
         .with_exec(["/root/.fly/bin/flyctl", "deploy", "--config", "/fly.toml"])
     )
 
