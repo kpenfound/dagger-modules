@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"context"
+	"runtime"
 )
 
 const (
@@ -51,9 +52,13 @@ func (g *Golang) WithContainer(c *Container) (*Golang) {
 }
 
 // Build the project
-func (g *Golang) Build(args []string) *Directory {
+func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
+	archStr := arch.GetOr(runtime.GOARCH)
 	command := append([]string{"go", "build"}, args...)
-	return g.prepare().WithExec(command).Directory(PROJ_MOUNT)
+	return g.prepare().
+	WithEnvVariable("GOARCH", archStr).
+	WithExec(command).
+	Directory(PROJ_MOUNT)
 }
 
 // Test the project
