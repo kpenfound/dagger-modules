@@ -26,15 +26,14 @@ class Proxy:
         frontend: Annotated[int, Doc("The frontend port for the proxy")],
     ) -> "Proxy":
         """Add a service to proxy"""
-        ctr = dagger.container().from_("nginx").with_entrypoint([])
         ports = await svc.ports()
         port = await ports[0].port()
         cfg = get_config(port, name, frontend)
 
-        ctr = ctr.with_service_binding(name, svc).with_exposed_port(frontend)
-        ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
+        ctr = self.ctr.with_service_binding(name, svc).with_exposed_port(frontend)
+        self.ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
 
-        return ctr
+        return self
 
     @function
     async def service() -> dagger.Service:
