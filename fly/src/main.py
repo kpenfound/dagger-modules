@@ -21,6 +21,7 @@ primary_region = "ord"
         fly_base(token)
         .with_new_file(path="/fly.toml", contents=config) # TODO: make more of these things options
         .with_exec(["/root/.fly/bin/flyctl", "deploy", "--config", "/fly.toml"])
+        .stdout()
     )
 
 def fly_base(token: dagger.Secret) -> dagger.Container:
