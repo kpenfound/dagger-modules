@@ -21,9 +21,9 @@ class Proxy:
 
     @function
     async def with_service(
-        service: Annotated[dagger.Service, Doc("The service to proxy")],
-        name: Annotated[str, Doc("The internal name of the service")],
-        frontend: Annotated[int, Doc("The frontend port for the proxy")],
+        service: dagger.Service,
+        name: str,
+        frontend: int,
     ) -> "Proxy":
         """Add a service to proxy"""
         ports = await service.ports()
