@@ -21,7 +21,7 @@ class Proxy:
 
     @function
     async def with_service(
-        svc: Annotated[dagger.Service, Doc("The service to proxy")],
+        svc: dagger.Service,
         name: Annotated[str, Doc("The internal name of the service")],
         frontend: Annotated[int, Doc("The frontend port for the proxy")],
     ) -> "Proxy":
