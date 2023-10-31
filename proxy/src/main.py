@@ -24,7 +24,7 @@ class Proxy:
         svc: Annotated[dagger.Service, Doc("The service to proxy")],
         name: Annotated[str, Doc("The internal name of the service")],
         frontend: Annotated[int, Doc("The frontend port for the proxy")],
-    ) -> Proxy:
+    ) -> "Proxy":
         """Add a service to proxy"""
         ctr = dagger.container().from_("nginx").with_entrypoint([])
         ports = await svc.ports()
