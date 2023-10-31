@@ -21,16 +21,16 @@ class Proxy:
 
     @function
     async def with_service(
-        svc: dagger.Service,
+        service: dagger.Service, Doc("The service to proxy")],
         name: Annotated[str, Doc("The internal name of the service")],
         frontend: Annotated[int, Doc("The frontend port for the proxy")],
     ) -> "Proxy":
         """Add a service to proxy"""
-        ports = await svc.ports()
+        ports = await service.ports()
         port = await ports[0].port()
         cfg = get_config(port, name, frontend)
 
-        ctr = self.ctr.with_service_binding(name, svc).with_exposed_port(frontend)
+        ctr = self.ctr.with_service_binding(name, service).with_exposed_port(frontend)
         self.ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
 
         return self
