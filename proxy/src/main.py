@@ -21,10 +21,11 @@ class Proxy:
 
     @function
     def with_service(
+        self,
+        service: dagger.Service,
         name: str,
         frontend: int,
-        backend: int,
-        foo: dagger.Service
+        backend: int
     ) -> "Proxy":
         """Add a service to proxy"""
    #     ports = await service.ports()
@@ -37,7 +38,7 @@ class Proxy:
         return self
 
     @function
-    def service() -> dagger.Service:
+    def service(self) -> dagger.Service:
         """Get the proxy Service"""
         ctr = self.ctr.with_exec(["/docker-entrypoint.sh", "nginx", "-g", "daemon off;"])
         return ctr.as_service()
