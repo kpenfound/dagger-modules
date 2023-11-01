@@ -20,15 +20,16 @@ class Proxy:
     ] = field(default=init())
 
     @function
-    async def with_service(
+    def with_service(
         service: dagger.Service,
         name: str,
         frontend: int,
+        backend: int
     ) -> "Proxy":
         """Add a service to proxy"""
-        ports = await service.ports()
-        port = await ports[0].port()
-        cfg = get_config(port, name, frontend)
+   #     ports = await service.ports()
+   #     port = await ports[0].port()
+        cfg = get_config(backend, name, frontend)
 
         ctr = self.ctr.with_service_binding(name, service).with_exposed_port(frontend)
         self.ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
@@ -36,7 +37,7 @@ class Proxy:
         return self
 
     @function
-    async def service() -> dagger.Service:
+    def service() -> dagger.Service:
         """Get the proxy Service"""
         ctr = self.ctr.with_exec(["/docker-entrypoint.sh", "nginx", "-g", "daemon off;"])
         return ctr.as_service()
