@@ -1,5 +1,5 @@
 import dagger
-from dagger.mod import Annotated, Doc, field, function, object_type
+from dagger.mod import field, function, object_type
 
 NGINX_CONFIG = "/etc/nginx/conf.d/default.conf"
 
@@ -14,10 +14,7 @@ def init() -> dagger.Container:
 class Proxy:
     """Forwards multiple services into a single service with multiple ports"""
 
-    ctr: Annotated[
-            dagger.Container,
-            Doc("Internal proxy container"),
-    ] = field(default=init())
+    ctr: dagger.Container = field(default=init())
 
     @function
     def with_service(
