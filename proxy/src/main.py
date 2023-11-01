@@ -21,17 +21,17 @@ class Proxy:
 
     @function
     def with_service(
-        service: dagger.Service,
         name: str,
         frontend: int,
-        backend: int
+        backend: int,
+        foo: dagger.Service
     ) -> "Proxy":
         """Add a service to proxy"""
    #     ports = await service.ports()
    #     port = await ports[0].port()
         cfg = get_config(backend, name, frontend)
 
-        ctr = self.ctr.with_service_binding(name, service).with_exposed_port(frontend)
+        ctr = self.ctr.with_service_binding(name, foo).with_exposed_port(frontend)
         self.ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
 
         return self
