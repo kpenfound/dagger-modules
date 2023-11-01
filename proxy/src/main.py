@@ -14,7 +14,7 @@ def init() -> dagger.Container:
 class Proxy:
     """Forwards multiple services into a single service with multiple ports"""
 
-    ctr: dagger.Container = field(default=init())
+    ctr: dagger.Container = field(default=init)
 
     @function
     def with_service(
@@ -25,8 +25,6 @@ class Proxy:
         backend: int
     ) -> "Proxy":
         """Add a service to proxy"""
-   #     ports = await service.ports()
-   #     port = await ports[0].port()
         cfg = get_config(backend, name, frontend)
 
         ctr = self.ctr.with_service_binding(name, service).with_exposed_port(frontend)
