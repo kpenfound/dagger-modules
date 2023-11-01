@@ -32,7 +32,7 @@ class Proxy:
    #     port = await ports[0].port()
         cfg = get_config(backend, name, frontend)
 
-        ctr = self.ctr.with_service_binding(name, foo).with_exposed_port(frontend)
+        ctr = self.ctr.with_service_binding(name, service).with_exposed_port(frontend)
         self.ctr = ctr.with_exec(['sh', '-c', f'echo "{cfg}" >> {NGINX_CONFIG}'])
 
         return self
