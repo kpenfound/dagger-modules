@@ -3,6 +3,7 @@ from dagger.mod import function
 
 @function
 def deploy(app: str, image: str, token: dagger.Secret) -> str:
+    """Deploy an application to fly.io with an image ref"""
     config = f'''
 app = "{app}"
 primary_region = "ord"
