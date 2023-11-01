@@ -1,9 +1,9 @@
 ## Usage:
 
 ```go
-return dag.Proxy().
-	WithService("backend", 8080, 8080, backendService).
-	WithService("frontend", 8081, 80, frontendService).
+dag.Proxy().
+	WithService(backendService, "backend", 8080, 8080).
+	WithService(frontendService, "frontend", 8081, 80).
 	Service()
 ```
 
