@@ -5,6 +5,7 @@ CLI = "netlify-cli@16.9.3"
 
 @function
 def deploy(dir: dagger.Directory, token: dagger.Secret, site: str) -> str:
+    """Deploy a site to production"""
     return (
         netlify_base(token)
         .with_mounted_directory("/src", dir)
@@ -14,6 +15,7 @@ def deploy(dir: dagger.Directory, token: dagger.Secret, site: str) -> str:
 
 @function
 def preview(dir: dagger.Directory, token: dagger.Secret, site: str) -> str:
+    """Deploy a preview site"""
     return (
         netlify_base(token)
         .with_mounted_directory("/src", dir)
@@ -23,6 +25,7 @@ def preview(dir: dagger.Directory, token: dagger.Secret, site: str) -> str:
 
 @function
 def list(token: dagger.Secret) -> str:
+    """List sites"""
     return (
         netlify_base(token)
         .with_exec(["netlify", "sites:list"])
