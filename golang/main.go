@@ -61,6 +61,22 @@ func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
 	Directory(PROJ_MOUNT)
 }
 
+func (g *Golang) BuildRemote(remote, ref, module string, arch Optional[string], platform Optional[string]) *Directory {
+	git := dag.Git(fmt.Sprintf("https://%s", remote)).
+		Branch(ref).
+		Tree()
+	g = g.WithProject(git)
+
+	archStr := arch.GetOr(runtime.GOARCH)
+	platStr := platform.GetOr(runtime.GOOS)
+	command := append([]string{"go", "build", "-o", "build/"}, module)
+	return g.prepare().
+	WithEnvVariable("GOARCH", archStr).
+	WithEnvVariable("GOOS", platStr).
+	WithExec(command).
+	Directory(fmt.Sprintf("%s/%s/", PROJ_MOUNT, "build"))
+}
+
 // Test the project
 func (g *Golang) Test(ctx context.Context, args []string) (string, error) {
 	command := append([]string{"go", "test"}, args...)
