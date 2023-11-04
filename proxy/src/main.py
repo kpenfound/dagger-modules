@@ -5,7 +5,7 @@ NGINX_CONFIG = "/etc/nginx/conf.d/default.conf"
 
 def init() -> dagger.Container:
     return (
-        dagger.container().from_("nginx")
+        dagger.container().from_("nginx:1.25.3")
         .with_entrypoint([])
         .with_exec(['sh', '-c', f'echo "" > {NGINX_CONFIG}'])
     )
