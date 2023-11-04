@@ -27,7 +27,7 @@ primary_region = "ord"
 
 def fly_base(token: dagger.Secret) -> dagger.Container:
     return (
-        dagger.container().from_("alpine:latest")
+        dagger.container().from_("alpine:3.18.4")
         .with_exec(["apk", "add", "curl"])
         .with_exec(["sh", "-c", "curl -L https://fly.io/install.sh | sh"])
         .with_secret_variable("FLY_API_TOKEN", token)
