@@ -1,18 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"runtime"
 )
 
 const (
 	DEFAULT_GO = "1.21"
 	PROJ_MOUNT = "/src"
+	LINT_IMAGE = "golangci/golangci-lint:v1.48"
 )
 
 type Golang struct {
-	Ctr *Container
+	Ctr  *Container
 	Proj *Directory
 }
 
@@ -32,21 +33,21 @@ func (g *Golang) Base(version string) *Golang {
 	build := dag.CacheVolume("gobuildcache")
 	image := fmt.Sprintf("golang:%s", version)
 	c := dag.Container().
-	From(image).
-	WithMountedCache("/go/pkg/mod", mod).
-	WithMountedCache("/root/.cache/go-build", build)
+		From(image).
+		WithMountedCache("/go/pkg/mod", mod).
+		WithMountedCache("/root/.cache/go-build", build)
 	g.Ctr = c
 	return g
 }
 
 // Specify the Project to use in the module
-func (g *Golang) WithProject(d *Directory) (*Golang) {
+func (g *Golang) WithProject(d *Directory) *Golang {
 	g.Proj = d
 	return g
 }
 
 // Bring your own container
-func (g *Golang) WithContainer(c *Container) (*Golang) {
+func (g *Golang) WithContainer(c *Container) *Golang {
 	g.Ctr = c
 	return g
 }
@@ -56,9 +57,9 @@ func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
 	archStr := arch.GetOr(runtime.GOARCH)
 	command := append([]string{"go", "build"}, args...)
 	return g.prepare().
-	WithEnvVariable("GOARCH", archStr).
-	WithExec(command).
-	Directory(PROJ_MOUNT)
+		WithEnvVariable("GOARCH", archStr).
+		WithExec(command).
+		Directory(PROJ_MOUNT)
 }
 
 func (g *Golang) BuildRemote(remote, ref, module string, arch Optional[string], platform Optional[string]) *Directory {
@@ -71,10 +72,10 @@ func (g *Golang) BuildRemote(remote, ref, module string, arch Optional[string], 
 	platStr := platform.GetOr(runtime.GOOS)
 	command := append([]string{"go", "build", "-o", "build/"}, module)
 	return g.prepare().
-	WithEnvVariable("GOARCH", archStr).
-	WithEnvVariable("GOOS", platStr).
-	WithExec(command).
-	Directory(fmt.Sprintf("%s/%s/", PROJ_MOUNT, "build"))
+		WithEnvVariable("GOARCH", archStr).
+		WithEnvVariable("GOOS", platStr).
+		WithExec(command).
+		Directory(fmt.Sprintf("%s/%s/", PROJ_MOUNT, "build"))
 }
 
 // Test the project
@@ -85,7 +86,7 @@ func (g *Golang) Test(ctx context.Context, args []string) (string, error) {
 
 // Lint the project
 func (g *Golang) GolangciLint(ctx context.Context) (string, error) {
-	return dag.Container().From("golangci/golangci-lint:v1.48").
+	return dag.Container().From(LINT_IMAGE).
 		WithMountedDirectory("/src", g.Proj).
 		WithWorkdir("/src").
 		WithExec([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}).
@@ -104,8 +105,7 @@ func (g *Golang) prepare() *Container {
 	}
 
 	c := g.Ctr.
-	WithDirectory(PROJ_MOUNT, g.Proj).
-	WithWorkdir(PROJ_MOUNT)
+		WithDirectory(PROJ_MOUNT, g.Proj).
+		WithWorkdir(PROJ_MOUNT)
 	return c
 }
-
