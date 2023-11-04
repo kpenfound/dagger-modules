@@ -9,7 +9,7 @@ import (
 const (
 	DEFAULT_GO = "1.21"
 	PROJ_MOUNT = "/src"
-	LINT_IMAGE = "golangci/golangci-lint:v1.48"
+	LINT_IMAGE = "golangci/golangci-lint:v1.55.2"
 )
 
 type Golang struct {
@@ -41,14 +41,14 @@ func (g *Golang) Base(version string) *Golang {
 }
 
 // Specify the Project to use in the module
-func (g *Golang) WithProject(d *Directory) *Golang {
-	g.Proj = d
+func (g *Golang) WithProject(dir *Directory) *Golang {
+	g.Proj = dir
 	return g
 }
 
 // Bring your own container
-func (g *Golang) WithContainer(c *Container) *Golang {
-	g.Ctr = c
+func (g *Golang) WithContainer(ctr *Container) *Golang {
+	g.Ctr = ctr
 	return g
 }
 
