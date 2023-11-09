@@ -5,10 +5,10 @@ import (
 	"fmt"
 )
 
-type Testcontainers struct{}
+type Dockerd struct{}
 
-// optionally, boolean for Testcontainers Cloud, optional TCC_TOKEN (secret).
-func (t *Testcontainers) Enable(ctx context.Context, c *Container) (*Container, error) {
+// optionally, boolean for Dockerd Cloud, optional TCC_TOKEN (secret).
+func (t *Dockerd) Attach(ctx context.Context, c *Container) (*Container, error) {
 	// docker service
 	dockerVersion := "24.0" // extract as a parameter
 	port := 2375
