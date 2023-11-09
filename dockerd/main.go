@@ -14,7 +14,7 @@ func (t *Dockerd) Attach(
 	container *Container,
 	dockerVersion Optional[string],
 ) (*Container, error) {
-	dockerd := t.Service(dockerVersio)
+	dockerd := t.Service(dockerVersion)
 
 	dockerHost, err := dockerd.Endpoint(ctx, ServiceEndpointOpts{
 		Scheme: "tcp",
@@ -32,7 +32,7 @@ func (t *Dockerd) Attach(
 func (t *Dockerd) Service(dockerVersion Optional[string]) *Service {
 	dockerV := dockerVersion.GetOr("24.0")
 	port := 2375
-	dockerd := dag.Container().
+	return dag.Container().
 		From(fmt.Sprintf("docker:%s-dind", dockerV)).
 		WithMountedCache(
 			"/var/lib/docker",
