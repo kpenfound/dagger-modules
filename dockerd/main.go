@@ -7,15 +7,22 @@ import (
 
 type Dockerd struct{}
 
-// optionally, boolean for Dockerd Cloud, optional TCC_TOKEN (secret).
-func (t *Dockerd) Attach(ctx context.Context, c *Container) (*Container, error) {
+func (t *Dockerd) Attach(
+	ctx context.Context,
+	c *Container,
+	dockerVersion Optional[string],
+) (*Container, error) {
 	// docker service
-	dockerVersion := "24.0" // extract as a parameter
+	dockerV := dockerVersion.GetOr("24.0")
 	port := 2375
-	dockerd := dag.Container().From(fmt.Sprintf("docker:%s-dind", dockerVersion)).
-		WithMountedCache("/var/lib/docker", dag.CacheVolume(dockerVersion+"-docker-lib"), ContainerWithMountedCacheOpts{
-			Sharing: Private,
-		}).
+	dockerd := dag.Container().
+		From(fmt.Sprintf("docker:%s-dind", dockerV)).
+		WithMountedCache(
+			"/var/lib/docker",
+			dag.CacheVolume(dockerV+"-docker-lib"),
+			ContainerWithMountedCacheOpts{
+				Sharing: Private,
+			}).
 		WithExposedPort(port).
 		WithExec([]string{
 			"dockerd",
@@ -27,16 +34,15 @@ func (t *Dockerd) Attach(ctx context.Context, c *Container) (*Container, error) 
 		}).
 		AsService()
 
+	// Get dockerd endpoint
 	dockerHost, err := dockerd.Endpoint(ctx, ServiceEndpointOpts{
 		Scheme: "tcp",
 	})
 	if err != nil {
 		return nil, err
 	}
-	// ---------
 
 	return c.
 		WithServiceBinding("docker", dockerd).
 		WithEnvVariable("DOCKER_HOST", dockerHost), nil
-
 }
