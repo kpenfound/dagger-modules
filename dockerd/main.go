@@ -5,14 +5,31 @@ import (
 	"fmt"
 )
 
+// Module for running docker in dagger
 type Dockerd struct{}
 
+// Attach a dockerd service to a container
 func (t *Dockerd) Attach(
 	ctx context.Context,
-	c *Container,
+	container *Container,
 	dockerVersion Optional[string],
 ) (*Container, error) {
-	// docker service
+	dockerd := t.Service(dockerVersio)
+
+	dockerHost, err := dockerd.Endpoint(ctx, ServiceEndpointOpts{
+		Scheme: "tcp",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return container.
+		WithServiceBinding("docker", dockerd).
+		WithEnvVariable("DOCKER_HOST", dockerHost), nil
+}
+
+// Get a Service container running dockerd
+func (t *Dockerd) Service(dockerVersion Optional[string]) *Service {
 	dockerV := dockerVersion.GetOr("24.0")
 	port := 2375
 	dockerd := dag.Container().
@@ -33,16 +50,4 @@ func (t *Dockerd) Attach(
 			InsecureRootCapabilities: true,
 		}).
 		AsService()
-
-	// Get dockerd endpoint
-	dockerHost, err := dockerd.Endpoint(ctx, ServiceEndpointOpts{
-		Scheme: "tcp",
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return c.
-		WithServiceBinding("docker", dockerd).
-		WithEnvVariable("DOCKER_HOST", dockerHost), nil
 }
