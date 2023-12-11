@@ -17,7 +17,7 @@ func (m *Utils) Tar(dir *Directory) *File {
 }
 
 // Concurrently Sync multiple Containers
-func (m *Utils) Multisync(ctx context.Context, ctrs []*Container) []*Container, error {
+func (m *Utils) Multisync(ctx context.Context, ctrs []*Container) ([]*Container, error) {
 	hck := dag.Directory()
 
 	for i, ctr := range ctrs {
