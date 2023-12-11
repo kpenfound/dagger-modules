@@ -1,0 +1,7 @@
+{
+  "name": "examples",
+  "sdk": "go",
+  "dependencies": [
+    "github.com/kpenfound/dagger-modules/utils@16db9cf49ff47759954ff84d9f76be92f8b3ca21"
+  ]
+}
