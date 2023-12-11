@@ -17,7 +17,7 @@ type Golang struct {
 	Proj *Directory
 }
 
-// Build the project
+// Build the Go project
 func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
 	archStr := arch.GetOr(runtime.GOARCH)
 	command := append([]string{"go", "build"}, args...)
@@ -27,13 +27,13 @@ func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
 		Directory(PROJ_MOUNT)
 }
 
-// Test the project
+// Test the Go project
 func (g *Golang) Test(ctx context.Context, args []string) (string, error) {
 	command := append([]string{"go", "test"}, args...)
 	return g.prepare().WithExec(command).Stdout(ctx)
 }
 
-// Lint the project
+// Lint the Go project
 func (g *Golang) GolangciLint(ctx context.Context) (string, error) {
 	return dag.Container().From(LINT_IMAGE).
 		WithMountedDirectory("/src", g.Proj).
@@ -77,6 +77,7 @@ func (g *Golang) WithContainer(ctr *Container) *Golang {
 	return g
 }
 
+// Build a remote git repo
 func (g *Golang) BuildRemote(remote, ref, module string, arch Optional[string], platform Optional[string]) *Directory {
 	git := dag.Git(fmt.Sprintf("https://%s", remote)).
 		Branch(ref).
