@@ -17,16 +17,19 @@ func (m *Utils) Tar(dir *Directory) *File {
 }
 
 // Concurrently Sync multiple Containers
-func (m *Utils) Multisync(ctx context.Context, ctrs []*Container) error {
+func (m *Utils) Multisync(ctx context.Context, ctrs []*Container) []*Container, error {
 	hck := dag.Directory()
 
 	for i, ctr := range ctrs {
 		ctrFile := fmt.Sprintf("/syncfile%v", i)
+		// Magic link to directory
 		ctr = ctr.WithNewFile("/syncfile")
 		hck = hck.WithFile(ctrFile, ctr.File("/syncfile"))
+
+		ctrs[i] = ctr
 	}
 
 	_, err := hck.Entries(ctx)
 
-	return err
+	return ctrs, err
 }
