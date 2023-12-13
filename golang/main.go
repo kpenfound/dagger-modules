@@ -18,9 +18,8 @@ type Golang struct {
 }
 
 func New(ctr Optional[*Container], proj Optional[*Directory]) *Golang {
-	g := &Golang{
-		Ctr: ctr.GetOr(dag.Container().From(DEFAULT_GO)),
-	}
+	g := &Golang{}
+	g.Ctr = ctr.GetOr(g.Base(DEFAULT_GO).Ctr)
 
 	p, isset := proj.Get()
 	if isset {
