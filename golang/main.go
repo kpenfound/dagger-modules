@@ -17,6 +17,19 @@ type Golang struct {
 	Proj *Directory
 }
 
+func New(ctr Optional[*Container], proj Optional[*Directory]) *Golang {
+	g := &Golang{
+		Ctr: ctr.GetOr(dag.Container().From(DEFAULT_GO)),
+	}
+
+	p, isset := proj.Get()
+	if isset {
+		g.Proj = p
+	}
+
+	return g
+}
+
 // Build the Go project
 func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
 	archStr := arch.GetOr(runtime.GOARCH)
@@ -96,15 +109,6 @@ func (g *Golang) BuildRemote(remote, ref, module string, arch Optional[string], 
 
 // Private func to check readiness and prepare the container for build/test/lint
 func (g *Golang) prepare() *Container {
-	if g.Proj == nil {
-		g.Proj = dag.Directory() // Unsure about this. Maybe want to error
-	}
-
-	if g.Ctr == nil {
-		gd := g.Base(DEFAULT_GO)
-		g.Ctr = gd.Ctr
-	}
-
 	c := g.Ctr.
 		WithDirectory(PROJ_MOUNT, g.Proj).
 		WithWorkdir(PROJ_MOUNT)
