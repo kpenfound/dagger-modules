@@ -18,7 +18,7 @@ func (c *Codecov) Upload(
 	name Optional[string], // optional name
 	verbose Optional[bool], // optional verbose output
 	files Optional[[]string], // optional list of coverage files
-	flags Optional[[]string] // optional additional flags for uploader
+	flags Optional[[]string], // optional additional flags for uploader
 ) (string, error) {
 	command := []string{"/bin/codecov", "-t", "$CODECOV_TOKEN"}
 
