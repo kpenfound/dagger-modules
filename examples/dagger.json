@@ -2,6 +2,7 @@
   "name": "examples",
   "sdk": "go",
   "dependencies": [
+    "github.com/kpenfound/dagger-modules/codecov@a80cf88f9a839b5c1bbeaf08264de24d7bc0ab0f",
     "github.com/kpenfound/dagger-modules/utils@79a5a539ec88e461661969bcdd3becee56bddc8b"
   ]
 }

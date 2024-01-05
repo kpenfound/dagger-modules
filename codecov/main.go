@@ -11,7 +11,15 @@ const (
 )
 
 // upload: upload coverage reports to codecov.io
-func (c *Codecov) Upload(ctx context.Context, dir *Directory, token *Secret, name Optional[string], verbose Optional[bool], files Optional[[]string], flags Optional[[]string]) (string, error) {
+func (c *Codecov) Upload(
+	ctx context.Context,
+	dir *Directory, // Directory containing git repo and coverage output
+	token *Secret, // codecov token for the git repo
+	name Optional[string], // optional name
+	verbose Optional[bool], // optional verbose output
+	files Optional[[]string], // optional list of coverage files
+	flags Optional[[]string] // optional additional flags for uploader
+) (string, error) {
 	command := []string{"/bin/codecov", "-t", "$CODECOV_TOKEN"}
 
 	name_, isset := name.Get()
