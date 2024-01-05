@@ -40,7 +40,7 @@ func (c *Codecov) Upload(ctx context.Context, dir *Directory, token *Secret, nam
 
 	return dag.Container(ContainerOpts{ Platform: "linux/amd64" }).
 		From("cgr.dev/chainguard/wolfi-base").
-		WithExec([]string{"apk", "add", "curl"}).
+		WithExec([]string{"apk", "add", "curl", "git"}).
 		WithExec([]string{"curl", "-o", "/bin/codecov", "-s", UPLOADER}). // TODO: validate uploader
 		WithExec([]string{"chmod", "+x", "/bin/codecov"}).
 		WithExec([]string{"ls", "-lah", "/bin/codecov"}).
