@@ -1,11 +1,11 @@
 import dagger
-from dagger.mod import field, function, object_type
+from dagger import dag, function, object_type
 
 NGINX_CONFIG = "/etc/nginx/conf.d/default.conf"
 
 def init() -> dagger.Container:
     return (
-        dagger.container().from_("nginx:1.25.3")
+        dag.container().from_("nginx:1.25.3")
     )
 
 @object_type
