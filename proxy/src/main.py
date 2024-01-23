@@ -1,5 +1,5 @@
 import dagger
-from dagger import dag, function, object_type
+from dagger import dag, function, field, object_type
 
 NGINX_CONFIG = "/etc/nginx/conf.d/default.conf"
 
