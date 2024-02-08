@@ -1,0 +1,9 @@
+{
+  "name": "ruff",
+  "sdk": "python",
+  "root-for": [
+    {
+      "source": "."
+    }
+  ]
+}
