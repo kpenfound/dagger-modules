@@ -17,24 +17,37 @@ type Golang struct {
 	Proj *Directory
 }
 
-func New(ctr Optional[*Container], proj Optional[*Directory]) *Golang {
+func New(
+	// +optional
+	ctr *Container,
+	// +optional
+	proj *Directory,
+) *Golang {
 	g := &Golang{}
-	g.Ctr = ctr.GetOr(g.Base(DEFAULT_GO).Ctr)
+	if ctr == nil {
+		ctr = g.Base(DEFAULT_GO).Ctr
+	}
+	g.Ctr = ctr
 
-	p, isset := proj.Get()
-	if isset {
-		g.Proj = p
+	if proj != nil {
+		g.Proj = proj
 	}
 
 	return g
 }
 
 // Build the Go project
-func (g *Golang) Build(args []string, arch Optional[string]) *Directory {
-	archStr := arch.GetOr(runtime.GOARCH)
+func (g *Golang) Build(
+	args []string,
+	// +optional
+	arch string,
+) *Directory {
+	if arch == "" {
+		arch = runtime.GOARCH
+	}
 	command := append([]string{"go", "build"}, args...)
 	return g.prepare().
-		WithEnvVariable("GOARCH", archStr).
+		WithEnvVariable("GOARCH", arch).
 		WithExec(command).
 		Directory(PROJ_MOUNT)
 }
@@ -90,18 +103,28 @@ func (g *Golang) WithContainer(ctr *Container) *Golang {
 }
 
 // Build a remote git repo
-func (g *Golang) BuildRemote(remote, ref, module string, arch Optional[string], platform Optional[string]) *Directory {
+func (g *Golang) BuildRemote(
+	remote, ref, module string,
+	// +optional
+	arch string,
+	// +optional
+	platform string,
+) *Directory {
 	git := dag.Git(fmt.Sprintf("https://%s", remote)).
 		Branch(ref).
 		Tree()
 	g = g.WithProject(git)
 
-	archStr := arch.GetOr(runtime.GOARCH)
-	platStr := platform.GetOr(runtime.GOOS)
+	if arch == "" {
+		arch = runtime.GOARCH
+	}
+	if platform == "" {
+		platform = runtime.GOOS
+	}
 	command := append([]string{"go", "build", "-o", "build/"}, module)
 	return g.prepare().
-		WithEnvVariable("GOARCH", archStr).
-		WithEnvVariable("GOOS", platStr).
+		WithEnvVariable("GOARCH", arch).
+		WithEnvVariable("GOOS", platform).
 		WithExec(command).
 		Directory(fmt.Sprintf("%s/%s/", PROJ_MOUNT, "build"))
 }
