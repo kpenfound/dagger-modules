@@ -13,6 +13,7 @@ func (t *Dockerd) Attach(
 	ctx context.Context,
 	container *Container,
 	// +optional
+	// +default=24.0
 	dockerVersion string,
 ) (*Container, error) {
 	dockerd := t.Service(dockerVersion)
