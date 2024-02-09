@@ -12,7 +12,8 @@ type Dockerd struct{}
 func (t *Dockerd) Attach(
 	ctx context.Context,
 	container *Container,
-	dockerVersion Optional[string],
+	// +optional
+	dockerVersion string,
 ) (*Container, error) {
 	dockerd := t.Service(dockerVersion)
 
@@ -29,14 +30,17 @@ func (t *Dockerd) Attach(
 }
 
 // Get a Service container running dockerd
-func (t *Dockerd) Service(dockerVersion Optional[string]) *Service {
-	dockerV := dockerVersion.GetOr("24.0")
+func (t *Dockerd) Service(
+	// +optional
+	// +default=24.0
+	dockerVersion string,
+) *Service {
 	port := 2375
 	return dag.Container().
-		From(fmt.Sprintf("docker:%s-dind", dockerV)).
+		From(fmt.Sprintf("docker:%s-dind", dockerVersion)).
 		WithMountedCache(
 			"/var/lib/docker",
-			dag.CacheVolume(dockerV+"-docker-lib"),
+			dag.CacheVolume(dockerVersion+"-docker-lib"),
 			ContainerWithMountedCacheOpts{
 				Sharing: Private,
 			}).
