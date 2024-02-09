@@ -15,33 +15,33 @@ func (c *Codecov) Upload(
 	ctx context.Context,
 	dir *Directory, // Directory containing git repo and coverage output
 	token *Secret, // codecov token for the git repo
-	name Optional[string], // optional name
-	verbose Optional[bool], // optional verbose output
-	files Optional[[]string], // optional list of coverage files
-	flags Optional[[]string], // optional additional flags for uploader
+	// +optional
+	name string, // optional name
+	// +optional
+	verbose bool, // optional verbose output
+	// +optional
+	files []string, // optional list of coverage files
+	// +optional
+	flags []string, // optional additional flags for uploader
 ) (string, error) {
 	command := []string{"/bin/codecov", "-t", "$CODECOV_TOKEN"}
 
-	name_, isset := name.Get()
-	if isset {
-		command = append(command, "-n", name_)
+	if name != "" {
+		command = append(command, "-n", name)
 	}
 
-	verbose_ := verbose.GetOr(false)
-	if verbose_ {
+	if verbose {
 		command = append(command, "-v")
 	}
 
-	files_, isset := files.Get()
-	if isset {
-		for _, f := range files_ {
+	if len(files) > 0 {
+		for _, f := range files {
 			command = append(command, "-f", f)
 		}
 	}
 
-	flags_, isset := flags.Get()
-	if isset {
-		for _, f := range flags_ {
+	if len(flags) > 0 {
+		for _, f := range flags {
 			command = append(command, f)
 		}
 	}
