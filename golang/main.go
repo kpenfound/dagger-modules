@@ -41,13 +41,19 @@ func (g *Golang) Build(
 	args []string,
 	// +optional
 	arch string,
+	// +optional
+	os string,
 ) *Directory {
 	if arch == "" {
 		arch = runtime.GOARCH
 	}
+	if os == "" {
+		os = runtime.GOOS
+	}
 	command := append([]string{"go", "build"}, args...)
 	return g.prepare().
 		WithEnvVariable("GOARCH", arch).
+		WithEnvVariable("GOOS", os).
 		WithExec(command).
 		Directory(PROJ_MOUNT)
 }
