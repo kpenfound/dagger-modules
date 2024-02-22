@@ -13,7 +13,7 @@ func (t *Dockerd) Attach(
 	ctx context.Context,
 	container *Container,
 	// +optional
-	// +default=24.0
+	// +default="24.0"
 	dockerVersion string,
 ) (*Container, error) {
 	dockerd := t.Service(dockerVersion)
@@ -33,7 +33,7 @@ func (t *Dockerd) Attach(
 // Get a Service container running dockerd
 func (t *Dockerd) Service(
 	// +optional
-	// +default=24.0
+	// +default="24.0"
 	dockerVersion string,
 ) *Service {
 	port := 2375
