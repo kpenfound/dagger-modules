@@ -1,3 +1,5 @@
+// Build Go projects
+
 package main
 
 import (
@@ -45,8 +47,10 @@ func (g *Golang) Build(
 	source *Directory,
 	// Arguments to `go build`
 	args []string,
+	// The architecture for GOARCH
 	// +optional
 	arch string,
+	// The operating system for GOOS
 	// +optional
 	os string,
 ) *Directory {
@@ -69,6 +73,7 @@ func (g *Golang) Build(
 		Directory(PROJ_MOUNT)
 }
 
+// Build a Go project returning a Container containing the build
 func (g *Golang) BuildContainer(
 	// The Go source code to build
 	// +optional
@@ -76,8 +81,10 @@ func (g *Golang) BuildContainer(
 	// Arguments to `go build`
 	// +optional
 	args []string,
+	// The architecture for GOARCH
 	// +optional
 	arch string,
+	// The operating system for GOOS
 	// +optional
 	os string,
 	// Base container in which to copy the build
@@ -94,13 +101,33 @@ func (g *Golang) BuildContainer(
 }
 
 // Test the Go project
-func (g *Golang) Test(ctx context.Context, args []string) (string, error) {
+func (g *Golang) Test(
+	ctx context.Context,
+	// The Go source code to test
+	// +optional
+	source *Directory,
+	// Arguments to `go test`
+	// +optional
+	// +default "./..."
+	args []string,
+) (string, error) {
+	if source != nil {
+		g = g.WithProject(source)
+	}
 	command := append([]string{"go", "test"}, args...)
 	return g.prepare().WithExec(command).Stdout(ctx)
 }
 
 // Lint the Go project
-func (g *Golang) GolangciLint(ctx context.Context) (string, error) {
+func (g *Golang) GolangciLint(
+	ctx context.Context,
+	// The Go source code to lint
+	// +optional
+	source *Directory,
+) (string, error) {
+	if source != nil {
+		g = g.WithProject(source)
+	}
 	return dag.Container().From(LINT_IMAGE).
 		WithMountedDirectory("/src", g.Proj).
 		WithWorkdir("/src").
