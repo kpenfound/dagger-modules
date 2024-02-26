@@ -56,9 +56,11 @@ func (g *Golang) Build(
 	if os == "" {
 		os = runtime.GOOS
 	}
+
 	if source != nil {
 		g = g.WithProject(source)
 	}
+
 	command := append([]string{"go", "build"}, args...)
 	return g.prepare().
 		WithEnvVariable("GOARCH", arch).
