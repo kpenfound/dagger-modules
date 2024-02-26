@@ -43,6 +43,8 @@ func (g *Golang) Build(
 	arch string,
 	// +optional
 	os string,
+	// +optional
+	project *Directory,
 ) *Directory {
 	if arch == "" {
 		arch = runtime.GOARCH
@@ -50,6 +52,10 @@ func (g *Golang) Build(
 	if os == "" {
 		os = runtime.GOOS
 	}
+	if project != nil {
+		g.Proj = project
+	}
+
 	command := append([]string{"go", "build"}, args...)
 	return g.prepare().
 		WithEnvVariable("GOARCH", arch).
