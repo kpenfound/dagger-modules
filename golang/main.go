@@ -13,7 +13,9 @@ const (
 )
 
 type Golang struct {
-	Ctr  *Container
+	// +private
+	Ctr *Container
+	// +private
 	Proj *Directory
 }
 
@@ -38,6 +40,10 @@ func New(
 
 // Build the Go project
 func (g *Golang) Build(
+	// The Go source code to build
+	// +optional
+	source *Directory,
+	// Arguments to `go build`
 	args []string,
 	// +optional
 	arch string,
@@ -50,12 +56,39 @@ func (g *Golang) Build(
 	if os == "" {
 		os = runtime.GOOS
 	}
+	if source != nil {
+		g = g.WithProject(source)
+	}
 	command := append([]string{"go", "build"}, args...)
 	return g.prepare().
 		WithEnvVariable("GOARCH", arch).
 		WithEnvVariable("GOOS", os).
 		WithExec(command).
 		Directory(PROJ_MOUNT)
+}
+
+func (g *Golang) BuildContainer(
+	// The Go source code to build
+	// +optional
+	source *Directory,
+	// Arguments to `go build`
+	// +optional
+	args []string,
+	// +optional
+	arch string,
+	// +optional
+	os string,
+	// Base container in which to copy the build
+	// +optional
+	base *Container,
+) *Container {
+	args = append([]string{"-o", "./build-output/"}, args...)
+	dir := g.Build(source, args, arch, os)
+	if base == nil {
+		base = dag.Container().From("ubuntu:latest")
+	}
+	return base.
+		WithDirectory("/usr/local/bin/", dir.Directory("./build-output/"))
 }
 
 // Test the Go project
@@ -86,12 +119,12 @@ func (g *Golang) Base(version string) *Golang {
 	return g
 }
 
-// Accessor for the Container
+// The go build container
 func (g *Golang) Container() *Container {
 	return g.Ctr
 }
 
-// Accessor for the Project
+// The go project directory
 func (g *Golang) Project() *Directory {
 	return g.Ctr.Directory(PROJ_MOUNT)
 }
