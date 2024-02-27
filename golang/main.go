@@ -91,7 +91,7 @@ func (g *Golang) BuildContainer(
 	// +optional
 	base *Container,
 ) *Container {
-	args = append([]string{"-o", "./build-output/"}, args...)
+	args = append(args, "-o", "/src/build-output/")
 	dir := g.Build(source, args, arch, os)
 	if base == nil {
 		base = dag.Container().From("ubuntu:latest")
