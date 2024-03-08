@@ -1,3 +1,9 @@
+"""
+Deploy containers to fly.io
+
+A utility module to deploy a container to fly.io using a very basic default configuration
+"""
+
 import dagger
 from dagger.mod import function
 
@@ -26,6 +32,7 @@ primary_region = "ord"
     )
 
 def fly_base(token: dagger.Secret) -> dagger.Container:
+    """Get the fly cli in a container"""
     return (
         dagger.container().from_("alpine:3.18.4")
         .with_exec(["apk", "add", "curl"])
