@@ -1,4 +1,6 @@
 // Build Go projects
+//
+// A utility module for building, testing, and linting Go projects
 
 package main
 
