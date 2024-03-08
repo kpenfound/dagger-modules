@@ -1,3 +1,8 @@
+// Run CircleCI config in Dagger
+//
+// A module that attempts to parse and execute a CircleCI configuration
+// using Dagger primitives
+
 package main
 
 import (
@@ -9,10 +14,7 @@ const CONFIG = "./.circleci/config.yml"
 
 type Encircle struct{}
 
-func (m *Encircle) MyFunction(ctx context.Context, stringArg string) (*Container, error) {
-	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg}).Sync(ctx)
-}
-
+// Execute a job in a workflow
 func (e *Encircle) EncircleJob(ctx context.Context, d *Directory, job string) (string, error) {
 	cfg, executor, err := setup(ctx, d)
 	if err != nil {
@@ -27,6 +29,7 @@ func (e *Encircle) EncircleJob(ctx context.Context, d *Directory, job string) (s
 	return strings.Join(executor.logs, "\n"), nil
 }
 
+// Execute an entire workflow
 func (e *Encircle) EncircleWorkflow(ctx context.Context, d *Directory, workflow string) (string, error) {
 
 	cfg, executor, err := setup(ctx, d)
