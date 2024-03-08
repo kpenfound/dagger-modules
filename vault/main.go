@@ -1,3 +1,7 @@
+// Interact with HashiCorp Vault
+//
+// A utility module for working with secrets in HashiCorp Vault
+
 package main
 
 import (
@@ -14,6 +18,7 @@ type Vault struct {
 	Address       string
 }
 
+// Authenticate to Vault with an approle secret
 func (v *Vault) Auth(approleID, approleSecret, address string) *Vault {
 	v.ApproleID = approleID
 	v.ApproleSecret = approleSecret
@@ -22,6 +27,7 @@ func (v *Vault) Auth(approleID, approleSecret, address string) *Vault {
 	return v
 }
 
+// Get a secret from Vault
 func (v *Vault) GetSecret(ctx context.Context, secret, key string) (*Secret, error) {
 	client, err := getClient(ctx, v)
 	if err != nil {
@@ -35,6 +41,7 @@ func (v *Vault) GetSecret(ctx context.Context, secret, key string) (*Secret, err
 	return dagSecret, nil
 }
 
+// Put a secret in Vault
 func (v *Vault) PutSecret(ctx context.Context, secret, key, value string) (*Vault, error) {
 	client, err := getClient(ctx, v)
 	if err != nil {
