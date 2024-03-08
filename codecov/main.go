@@ -1,3 +1,7 @@
+// Upload coverage reports to Codecov
+//
+// A module for uploading test coverage reports to Codecov
+
 package main
 
 import (
