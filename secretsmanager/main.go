@@ -1,3 +1,7 @@
+// Interact with AWS SecretsManager
+//
+// A utility module to get and put secrets using AWS SecretsManager
+
 package main
 
 import (
@@ -12,6 +16,7 @@ type Secretsmanager struct {
 	Secret string
 }
 
+// Authenticate to AWS using key and secret
 func (m *Secretsmanager) Auth(key, secret string) *Secretsmanager {
 	m.Key = key
 	m.Secret = secret
@@ -19,6 +24,7 @@ func (m *Secretsmanager) Auth(key, secret string) *Secretsmanager {
 	return m
 }
 
+// Retrieve a secret from SecretsManager
 func (m *Secretsmanager) GetSecret(name string) (*Secret, error) {
 	config := &aws.Config{
 		Region:      aws.String("us-east-1"),
@@ -42,6 +48,7 @@ func (m *Secretsmanager) GetSecret(name string) (*Secret, error) {
 	return dagSecret, nil
 }
 
+// Put a secret in SecretsManager
 func (m *Secretsmanager) PutSecret(name, value string) (*Secretsmanager, error) {
 	config := &aws.Config{
 		Region:      aws.String("us-east-1"),
