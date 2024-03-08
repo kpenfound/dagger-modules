@@ -1,3 +1,9 @@
+"""
+Deploy apps to Netlify
+
+A utility module for deploying apps to Netlify
+"""
+
 import dagger
 from dagger.mod import function
 
