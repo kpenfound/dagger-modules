@@ -1,3 +1,7 @@
+// Utility for running dockerd in Dagger
+//
+// A utility module for configuring a dockerd service in your Dagger pipeline
+
 package main
 
 import (
