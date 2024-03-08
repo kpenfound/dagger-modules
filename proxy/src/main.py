@@ -1,3 +1,10 @@
+"""
+Proxy multiple services though a single service
+
+This module allows you to proxy any number of Dagger Services
+through a single Dagger Service on specified ports
+"""
+
 import dagger
 from dagger import dag, function, field, object_type
 
