@@ -1,0 +1,5 @@
+{
+  "name": "nginx",
+  "sdk": "go",
+  "engineVersion": "v0.10.3"
+}
