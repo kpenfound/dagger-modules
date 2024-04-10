@@ -14,6 +14,7 @@ const (
 	DEFAULT_GO = "1.21"
 	PROJ_MOUNT = "/src"
 	LINT_IMAGE = "golangci/golangci-lint:v1.55.2"
+	OUT_DIR = "/out/"
 )
 
 type Golang struct {
@@ -67,12 +68,12 @@ func (g *Golang) Build(
 		g = g.WithProject(source)
 	}
 
-	command := append([]string{"go", "build"}, args...)
+	command := append([]string{"go", "build", "-o", OUT_DIR}, args...)
 	return g.prepare().
 		WithEnvVariable("GOARCH", arch).
 		WithEnvVariable("GOOS", os).
 		WithExec(command).
-		Directory(PROJ_MOUNT)
+		Directory(OUT_DIR)
 }
 
 // Build a Go project returning a Container containing the build
