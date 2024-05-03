@@ -94,13 +94,12 @@ func (g *Golang) BuildContainer(
 	// +optional
 	base *Container,
 ) *Container {
-	args = append(args, "-o", "/src/build-output/")
 	dir := g.Build(source, args, arch, os)
 	if base == nil {
 		base = dag.Container().From("ubuntu:latest")
 	}
 	return base.
-		WithDirectory("/usr/local/bin/", dir.Directory("./build-output/"))
+		WithDirectory("/usr/local/bin/", dir)
 }
 
 // Test the Go project
