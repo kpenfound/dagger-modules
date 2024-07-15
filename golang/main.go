@@ -8,27 +8,29 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+
+	"golang/internal/dagger"
 )
 
 const (
 	DEFAULT_GO = "1.21"
 	PROJ_MOUNT = "/src"
 	LINT_IMAGE = "golangci/golangci-lint:v1.55.2"
-	OUT_DIR = "/out/"
+	OUT_DIR    = "/out/"
 )
 
 type Golang struct {
 	// +private
-	Ctr *Container
+	Ctr *dagger.Container
 	// +private
-	Proj *Directory
+	Proj *dagger.Directory
 }
 
 func New(
 	// +optional
-	ctr *Container,
+	ctr *dagger.Container,
 	// +optional
-	proj *Directory,
+	proj *dagger.Directory,
 ) *Golang {
 	g := &Golang{}
 	if ctr == nil {
@@ -47,7 +49,7 @@ func New(
 func (g *Golang) Build(
 	// The Go source code to build
 	// +optional
-	source *Directory,
+	source *dagger.Directory,
 	// Arguments to `go build`
 	args []string,
 	// The architecture for GOARCH
@@ -56,7 +58,7 @@ func (g *Golang) Build(
 	// The operating system for GOOS
 	// +optional
 	os string,
-) *Directory {
+) *dagger.Directory {
 	if arch == "" {
 		arch = runtime.GOARCH
 	}
@@ -80,7 +82,7 @@ func (g *Golang) Build(
 func (g *Golang) BuildContainer(
 	// The Go source code to build
 	// +optional
-	source *Directory,
+	source *dagger.Directory,
 	// Arguments to `go build`
 	// +optional
 	args []string,
@@ -92,8 +94,8 @@ func (g *Golang) BuildContainer(
 	os string,
 	// Base container in which to copy the build
 	// +optional
-	base *Container,
-) *Container {
+	base *dagger.Container,
+) *dagger.Container {
 	dir := g.Build(source, args, arch, os)
 	if base == nil {
 		base = dag.Container().From("ubuntu:latest")
@@ -107,7 +109,7 @@ func (g *Golang) Test(
 	ctx context.Context,
 	// The Go source code to test
 	// +optional
-	source *Directory,
+	source *dagger.Directory,
 	// Arguments to `go test`
 	// +optional
 	// +default "./..."
@@ -125,7 +127,7 @@ func (g *Golang) GolangciLint(
 	ctx context.Context,
 	// The Go source code to lint
 	// +optional
-	source *Directory,
+	source *dagger.Directory,
 ) (string, error) {
 	if source != nil {
 		g = g.WithProject(source)
@@ -151,23 +153,23 @@ func (g *Golang) Base(version string) *Golang {
 }
 
 // The go build container
-func (g *Golang) Container() *Container {
+func (g *Golang) Container() *dagger.Container {
 	return g.Ctr
 }
 
 // The go project directory
-func (g *Golang) Project() *Directory {
+func (g *Golang) Project() *dagger.Directory {
 	return g.Ctr.Directory(PROJ_MOUNT)
 }
 
 // Specify the Project to use in the module
-func (g *Golang) WithProject(dir *Directory) *Golang {
+func (g *Golang) WithProject(dir *dagger.Directory) *Golang {
 	g.Proj = dir
 	return g
 }
 
 // Bring your own container
-func (g *Golang) WithContainer(ctr *Container) *Golang {
+func (g *Golang) WithContainer(ctr *dagger.Container) *Golang {
 	g.Ctr = ctr
 	return g
 }
@@ -179,7 +181,7 @@ func (g *Golang) BuildRemote(
 	arch string,
 	// +optional
 	platform string,
-) *Directory {
+) *dagger.Directory {
 	git := dag.Git(fmt.Sprintf("https://%s", remote)).
 		Branch(ref).
 		Tree()
@@ -200,7 +202,7 @@ func (g *Golang) BuildRemote(
 }
 
 // Private func to check readiness and prepare the container for build/test/lint
-func (g *Golang) prepare() *Container {
+func (g *Golang) prepare() *dagger.Container {
 	c := g.Ctr.
 		WithDirectory(PROJ_MOUNT, g.Proj).
 		WithWorkdir(PROJ_MOUNT)
