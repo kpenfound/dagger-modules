@@ -147,7 +147,7 @@ func (g *Golang) Base(version string) *Golang {
 		WithMountedCache("/go/pkg/mod", mod).
 		WithMountedCache("/root/.cache/go-build", build)
 	g.Ctr = c
-	return g.prepare()
+	return g
 }
 
 // The go build container
