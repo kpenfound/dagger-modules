@@ -2,5 +2,5 @@
   "name": "codecov",
   "sdk": "go",
   "source": ".",
-  "engineVersion": "v0.9.9"
+  "engineVersion": "v0.12.5"
 }
