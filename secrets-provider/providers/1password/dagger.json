@@ -1,0 +1,16 @@
+{
+  "name": "provider-op",
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "onepassword",
+      "source": "github.com/replicatedhq/daggerverse/onepassword@d358705cf754e7fbdcc0b5c7cee09a956226e2e2"
+    },
+    {
+      "name": "secrets-provider",
+      "source": "../.."
+    }
+  ],
+  "source": ".",
+  "engineVersion": "v0.13.3"
+}
