@@ -10,10 +10,12 @@ import (
 	"runtime"
 
 	"golang/internal/dagger"
+
+	"dagger.io/dagger/dag"
 )
 
 const (
-	DEFAULT_GO = "1.22"
+	DEFAULT_GO = "1.23"
 	PROJ_MOUNT = "/src"
 	LINT_IMAGE = "golangci/golangci-lint:v1.59.1"
 	OUT_DIR    = "/out/"
