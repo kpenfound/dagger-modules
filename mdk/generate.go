@@ -10,10 +10,12 @@ import (
 	"github.com/gobeam/stringy"
 )
 
+// Utilities for generating module things
 type Generate struct {
 	Source *dagger.Directory
 }
 
+// Generate Daggerverse examples for a module
 func (g *Generate) Examples(ctx context.Context) (*dagger.Directory, error) {
 	dir := dag.Directory()
 
@@ -50,6 +52,7 @@ func (g *Generate) Examples(ctx context.Context) (*dagger.Directory, error) {
 	return dir, nil
 }
 
+// Get the name and functions of the objects in the g.Source module
 func (g *Generate) getObjects(ctx context.Context) (string, []string, error) {
 	objs := []string{}
 	mod := g.Source.AsModule().Initialize()
@@ -68,11 +71,13 @@ func (g *Generate) getObjects(ctx context.Context) (string, []string, error) {
 		if err != nil {
 			return "", nil, err
 		}
+		// Only look at Objects
 		if t == "OBJECT_KIND" {
 			objName, err := o.AsObject().Name(ctx)
 			if err != nil {
 				return "", nil, err
 			}
+			// Only look at objects that match the module name
 			if toCamel(objName) == toCamel(name) {
 				funcs, err := o.AsObject().Functions(ctx)
 				if err != nil {
@@ -94,9 +99,12 @@ func (g *Generate) getObjects(ctx context.Context) (string, []string, error) {
 	return name, objs, nil
 }
 
+// Generate a template for the given SDK
 func templateExample(sdk string, module string, objects []string) (*dagger.Directory, error) {
 	templ := ""
 	path := ""
+
+	// figure out which SDK we're templating
 	switch sdk {
 	case "go":
 		templ = goTemplate()
@@ -130,19 +138,23 @@ func templateExample(sdk string, module string, objects []string) (*dagger.Direc
 		return nil, err
 	}
 
+	// return directory with generated example file
 	return dag.Directory().WithNewFile(path, out.String()), nil
 }
 
+// PascalCase
 func toPascal(s string) string {
 	str := stringy.New(s)
 	return str.PascalCase().Get()
 }
 
+// snake_case
 func toSnake(s string) string {
 	str := stringy.New(s)
 	return str.SnakeCase().ToLower()
 }
 
+// camelCase
 func toCamel(s string) string {
 	str := stringy.New(s)
 	return str.CamelCase().Get()
@@ -202,6 +214,7 @@ class Example {
 `
 }
 
+// Escape hatch for debugging
 func (g *Generate) Debug() *dagger.Container {
 	return dag.Container().From("alpine").WithMountedDirectory("/src", g.Source).WithWorkdir("/src")
 }

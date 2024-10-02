@@ -1,4 +1,7 @@
-// A generated module for Mdk functions
+// The unofficial MDK (Module Developer Kit)
+//
+// The MDK is the Module Developer Kit. It provides
+// utilities for develping modules.
 
 package main
 
@@ -15,12 +18,4 @@ func New(
 	return &Mdk{
 		Generate: Generate{Source: source},
 	}
-}
-
-func (m *Mdk) Foo() string {
-	return "foo"
-}
-
-func (m *Mdk) BarBaz() string {
-	return "bar"
 }
