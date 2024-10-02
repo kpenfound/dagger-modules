@@ -201,3 +201,7 @@ class Example {
 }
 `
 }
+
+func (g *Generate) Debug() *dagger.Container {
+	return dag.Container().From("alpine").WithMountedDirectory("/src", g.Source).WithWorkdir("/src")
+}
