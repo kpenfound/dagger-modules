@@ -1,0 +1,16 @@
+{
+  "name": "provider-infisical",
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "infisical",
+      "source": "github.com/Infisical/infisical-dagger@98042321db6b3995f2f0d874c61990c3c73d7d30"
+    },
+    {
+      "name": "secrets-provider",
+      "source": "../.."
+    }
+  ],
+  "source": ".",
+  "engineVersion": "v0.13.3"
+}

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+dagger call demo --provider infisical --client env:INFISICAL_CLIENT_ID --token env:INFISICAL_SECRET $@

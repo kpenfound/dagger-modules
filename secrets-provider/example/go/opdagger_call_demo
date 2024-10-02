@@ -1,0 +1,3 @@
+#!/bin/bash
+
+dagger call demo --provider op --token env:OP_SERVICE_ACCOUNT_TOKEN $@

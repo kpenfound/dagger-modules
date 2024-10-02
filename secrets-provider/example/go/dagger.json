@@ -1,0 +1,20 @@
+{
+  "name": "examples",
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "provider-infisical",
+      "source": "../../providers/infisical"
+    },
+    {
+      "name": "provider-op",
+      "source": "../../providers/1password"
+    },
+    {
+      "name": "secrets-provider",
+      "source": "../.."
+    }
+  ],
+  "source": ".",
+  "engineVersion": "v0.13.3"
+}
