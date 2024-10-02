@@ -10,7 +10,9 @@ import (
 	"github.com/gobeam/stringy"
 )
 
-type Generate struct{}
+type Generate struct {
+	Source *dagger.Directory
+}
 
 func (g *Generate) Examples(ctx context.Context) (*dagger.Directory, error) {
 	dir := dag.Directory()
@@ -50,7 +52,7 @@ func (g *Generate) Examples(ctx context.Context) (*dagger.Directory, error) {
 
 func (g *Generate) getObjects(ctx context.Context) (string, []string, error) {
 	objs := []string{}
-	mod := dag.CurrentModule().Source().AsModule().Initialize()
+	mod := g.Source.AsModule().Initialize()
 	name, err := mod.Name(ctx)
 	if err != nil {
 		return "", nil, err

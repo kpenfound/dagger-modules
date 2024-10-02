@@ -2,13 +2,18 @@
 
 package main
 
+import "dagger/mdk/internal/dagger"
+
 type Mdk struct {
 	Generate Generate
 }
 
-func New() *Mdk {
+func New(
+	// +defaultPath="/"
+	source *dagger.Directory,
+) *Mdk {
 	return &Mdk{
-		Generate: Generate{},
+		Generate: Generate{Source: source},
 	}
 }
 
