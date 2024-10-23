@@ -10,8 +10,6 @@ import (
 	"runtime"
 
 	"golang/internal/dagger"
-
-	"dagger.io/dagger/dag"
 )
 
 const (
