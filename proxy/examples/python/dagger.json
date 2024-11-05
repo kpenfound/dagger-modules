@@ -1,0 +1,13 @@
+{
+  "name": "example",
+  "engineVersion": "v0.13.7",
+  "sdk": "python",
+  "dependencies": [
+    {
+      "name": "proxy",
+      "source": "../..",
+      "pin": ""
+    }
+  ],
+  "source": "."
+}

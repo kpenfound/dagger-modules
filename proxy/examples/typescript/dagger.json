@@ -1,0 +1,13 @@
+{
+  "name": "example",
+  "engineVersion": "v0.13.3",
+  "sdk": "typescript",
+  "dependencies": [
+    {
+      "name": "proxy",
+      "source": "../..",
+      "pin": ""
+    }
+  ],
+  "source": "."
+}
