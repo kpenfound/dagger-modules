@@ -165,11 +165,11 @@ func goTemplate() string {
 // {{ .Module |  ToPascal }} examples in Go
 package main
 
-type Examples struct{}
+type Example struct{}
 
 {{ range .Objects }}
 // Example for {{ . | ToPascal }} function
-func {{ $.Module | ToPascal }}_{{ . | ToPascal }} () {
+func (m *Example) {{ $.Module | ToPascal }}_{{ . | ToPascal }} () {
 	// TODO: implement example here
 }
 
