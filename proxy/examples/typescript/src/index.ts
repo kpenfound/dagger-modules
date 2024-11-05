@@ -7,8 +7,8 @@ class Example {
    * example for withservice function
    */
   @func()
-  proxyWithService(service: Service): Proxy {
-    return dag.proxy().withService(service, "myService", 8080, 80);
+  proxyWithService(service: Service): Service {
+    return dag.proxy().withService(service, "myService", 8080, 80).service();
   }
 
   /**

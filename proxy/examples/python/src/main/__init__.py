@@ -1,13 +1,13 @@
 
 """proxy examples in Python"""
 import dagger
-from dagger import dag, function, object_type, Service, Proxy
+from dagger import dag, function, object_type, Service
 
 @object_type
 class Example:
 
 	@function
-	def proxy_with_service(self, service: Service) -> Proxy:
+	def proxy_with_service(self, service: Service) -> Service:
 		"""Example for with_service function"""
 		return (
     		dag.proxy()
@@ -16,7 +16,7 @@ class Example:
           		"my_service",   # Name of the service
                 8080,           # Port for the proxy to listen on
                 80              # Port for the proxy to forward to
-    		)
+    		).service()
 		)
 
 
