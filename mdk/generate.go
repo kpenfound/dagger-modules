@@ -169,7 +169,7 @@ type Example struct{}
 
 {{ range .Objects }}
 // Example for {{ . | ToPascal }} function
-func (m *Example) {{ $.Module | ToPascal }}_{{ . | ToPascal }} () {
+func (m *Example) {{ $.Module | ToPascal }}{{ . | ToPascal }} () {
 	// TODO: implement example here
 }
 
