@@ -6,7 +6,7 @@ import "dagger/example/internal/dagger"
 type Example struct{}
 
 // Example for WithService function
-func (m *Example) Proxy_WithService(service *dagger.Service) *dagger.Service {
+func (m *Example) ProxyWithService(service *dagger.Service) *dagger.Service {
 	return dag.Proxy().
 		WithService(
 			service,     // Dagger service to proxy
@@ -17,7 +17,7 @@ func (m *Example) Proxy_WithService(service *dagger.Service) *dagger.Service {
 }
 
 // Example for Service function
-func (m *Example) Proxy_Service(serviceA *dagger.Service, serviceB *dagger.Service) *dagger.Service {
+func (m *Example) ProxyService(serviceA *dagger.Service, serviceB *dagger.Service) *dagger.Service {
 	return dag.Proxy().
 		WithService(
 			serviceA,   // Dagger service to proxy
