@@ -12,8 +12,8 @@ class Example:
 		return (
     		dag.proxy()
     		.with_service(
-          		service,        # Dagger service to proxy
-          		"my_service",   # Name of the service
+                service,        # Dagger service to proxy
+               	"my_service",   # Name of the service
                 8080,           # Port for the proxy to listen on
                 80              # Port for the proxy to forward to
     		).service()
