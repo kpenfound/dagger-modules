@@ -1,4 +1,6 @@
 {
   "name": "netlify",
-  "sdk": "python"
+  "engineVersion": "v0.14.0",
+  "sdk": "python",
+  "source": "."
 }
