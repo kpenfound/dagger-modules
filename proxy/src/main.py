@@ -90,7 +90,7 @@ class Proxy:
     @function
     def service(self) -> dagger.Service:
         """Get the proxy Service"""
-        return self.ctr.with_exec(["nginx", "-g", "daemon off;"]).as_service()
+        return self.ctr.as_service(args=["nginx", "-g", "daemon off;"])
 
 
 def get_config(port: int, name: str, frontend: int, is_tcp: bool) -> str:
