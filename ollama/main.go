@@ -5,21 +5,46 @@ package main
 import (
 	"context"
 	"dagger/ollama/internal/dagger"
+	"fmt"
 )
 
-type Ollama struct{}
-
-// Returns a container that echoes whatever string argument is provided
-func (m *Ollama) ContainerEcho(stringArg string) *dagger.Container {
-	return dag.Container().From("alpine:latest").WithExec([]string{"echo", stringArg})
+type Ollama struct {
+	Service *dagger.Service
 }
 
-// Returns lines that match a pattern in the files of the provided Directory
-func (m *Ollama) GrepDir(ctx context.Context, directoryArg *dagger.Directory, pattern string) (string, error) {
-	return dag.Container().
-		From("alpine:latest").
-		WithMountedDirectory("/mnt", directoryArg).
-		WithWorkdir("/mnt").
-		WithExec([]string{"grep", "-R", pattern, "."}).
-		Stdout(ctx)
+func New(
+	ctx context.Context,
+	endpoint *dagger.Service,
+) *Ollama {
+	return &Ollama{
+		Service: endpoint,
+	}
+}
+
+// Returns a container that echoes whatever string argument is provided
+func (m *Ollama) Ask(ctx context.Context, prompt string) (string, error) {
+	endpoint, err := m.Service.Endpoint(ctx)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println("Endpoint: ", endpoint)
+
+	client := NewOllamaClient("http://" + endpoint)
+
+	fmt.Println("Prompt: ", prompt)
+	response, err := client.Ask(ctx, prompt)
+	if err != nil {
+		return "", err
+	}
+
+	return response, nil
+}
+
+func (m *Ollama) Env() *dagger.Container {
+	return dag.Container().From("golang:1.23-alpine").
+		WithExec([]string{"apk", "add", "curl"}).
+		WithWorkdir("/src").
+		WithMountedDirectory("/src", dag.CurrentModule().Source().Directory("chat")).
+		WithServiceBinding("localhost", m.Service).
+		WithEnvVariable("OLLAMA_HOST", "http://localhost:11434")
 }

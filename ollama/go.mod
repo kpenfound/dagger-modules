@@ -1,6 +1,8 @@
 module dagger/ollama
 
-go 1.23.2
+go 1.23
+
+toolchain go1.23.5
 
 require (
 	github.com/99designs/gqlgen v0.17.57
@@ -31,6 +33,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.22.0 // indirect
+	github.com/ollama/ollama v0.5.1
 	github.com/sosodev/duration v1.3.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.27.0 // indirect
 	golang.org/x/net v0.33.0 // indirect

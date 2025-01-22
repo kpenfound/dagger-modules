@@ -1,5 +1,12 @@
 {
   "name": "ollama",
   "engineVersion": "v0.15.2",
-  "sdk": "go"
+  "sdk": "go",
+  "dependencies": [
+    {
+      "name": "proxy",
+      "source": "../proxy"
+    }
+  ],
+  "source": "."
 }
