@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/ollama/ollama/api"
 )
@@ -17,18 +18,18 @@ type OllamaClient struct {
 }
 
 func NewOllamaClient(endpoint string) *OllamaClient {
-	// url, err := url.Parse(endpoint)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// c := api.NewClient(
-	// 	url,
-	// 	&http.Client{Transport: NewAddHeaderTransport(nil)},
-	// )
-	c, err := api.ClientFromEnvironment()
+	url, err := url.Parse(endpoint)
 	if err != nil {
 		panic(err)
 	}
+	c := api.NewClient(
+		url,
+		&http.Client{Transport: NewAddHeaderTransport(nil)},
+	)
+	// c, err := api.ClientFromEnvironment()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	return &OllamaClient{
 		client: c,
