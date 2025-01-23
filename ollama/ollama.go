@@ -90,11 +90,9 @@ type AddHeaderTransport struct {
 }
 
 func (adt *AddHeaderTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add("Host", "localhost")
-	req.Header.Add("Origin", "localhost")
-	resp, err := adt.T.RoundTrip(req)
-	fmt.Printf("\nReq: %+v\nResp: %+v\n%+v\n", req, resp, err)
-	return resp, err
+	req.Header.Add("Host", "localhost:11434")
+	req.Host = "localhost:11434"
+	return adt.T.RoundTrip(req)
 }
 
 func NewAddHeaderTransport(T http.RoundTripper) *AddHeaderTransport {

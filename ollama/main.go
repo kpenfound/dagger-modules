@@ -39,12 +39,3 @@ func (m *Ollama) Ask(ctx context.Context, prompt string) (string, error) {
 
 	return response, nil
 }
-
-func (m *Ollama) Env() *dagger.Container {
-	return dag.Container().From("golang:1.23-alpine").
-		WithExec([]string{"apk", "add", "curl"}).
-		WithWorkdir("/src").
-		WithMountedDirectory("/src", dag.CurrentModule().Source().Directory("chat")).
-		WithServiceBinding("localhost", m.Service).
-		WithEnvVariable("OLLAMA_HOST", "http://localhost:11434")
-}
