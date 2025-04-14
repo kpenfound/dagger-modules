@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"main/internal/dagger"
 )
 
 // Module for running docker in dagger
@@ -15,14 +16,14 @@ type Dockerd struct{}
 // Attach a dockerd service to a container
 func (t *Dockerd) Attach(
 	ctx context.Context,
-	container *Container,
+	container *dagger.Container,
 	// +optional
 	// +default="24.0"
 	dockerVersion string,
-) (*Container, error) {
+) (*dagger.Container, error) {
 	dockerd := t.Service(dockerVersion)
 
-	dockerHost, err := dockerd.Endpoint(ctx, ServiceEndpointOpts{
+	dockerHost, err := dockerd.Endpoint(ctx, dagger.ServiceEndpointOpts{
 		Scheme: "tcp",
 	})
 	if err != nil {
@@ -39,15 +40,15 @@ func (t *Dockerd) Service(
 	// +optional
 	// +default="24.0"
 	dockerVersion string,
-) *Service {
+) *dagger.Service {
 	port := 2375
 	return dag.Container().
 		From(fmt.Sprintf("docker:%s-dind", dockerVersion)).
 		WithMountedCache(
 			"/var/lib/docker",
 			dag.CacheVolume(dockerVersion+"-docker-lib"),
-			ContainerWithMountedCacheOpts{
-				Sharing: Private,
+			dagger.ContainerWithMountedCacheOpts{
+				Sharing: dagger.CacheSharingModePrivate,
 			}).
 		WithExposedPort(port).
 		WithExec([]string{
@@ -55,7 +56,7 @@ func (t *Dockerd) Service(
 			"--host=tcp://0.0.0.0:2375",
 			"--host=unix:///var/run/docker.sock",
 			"--tls=false",
-		}, ContainerWithExecOpts{
+		}, dagger.ContainerWithExecOpts{
 			InsecureRootCapabilities: true,
 		}).
 		AsService()
