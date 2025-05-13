@@ -171,7 +171,7 @@ func (g *Golang) GolangciLintFix(
 		return nil, err
 	}
 
-	return done.Directory("/src"), nil
+	return done.Directory(MOUNT_PATH), nil
 }
 
 // Private lint helper
@@ -180,8 +180,8 @@ func (g *Golang) lint(source *dagger.Directory, args []string) *dagger.Container
 		source = g.GetSource()
 	}
 	return dag.Container().From(LINT_IMAGE).
-		WithMountedDirectory("/src", source).
-		WithWorkdir("/src").
+		WithMountedDirectory(MOUNT_PATH, source).
+		WithWorkdir(MOUNT_PATH).
 		WithExec(append([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}, args...))
 }
 
