@@ -13,33 +13,35 @@ import (
 )
 
 const (
-	DEFAULT_GO = "1.23"
-	PROJ_MOUNT = "/src"
-	LINT_IMAGE = "golangci/golangci-lint:v1.59.1"
+	MOUNT_PATH = "/app"
+	LINT_IMAGE = "golangci/golangci-lint:v2.1"
 	OUT_DIR    = "/out/"
 )
 
 type Golang struct {
-	// +private
-	Ctr *dagger.Container
-	// +private
-	Proj *dagger.Directory
+	// Golang container with the go project and go toolchain
+	Container *dagger.Container
 }
 
 func New(
+	// Specify an alternative container to index.docker.io/golang
 	// +optional
 	ctr *dagger.Container,
+	// The source directory of the Go project
 	// +optional
-	proj *dagger.Directory,
+	source *dagger.Directory,
+	// Golang image tag to use
+	// +default="1.24"
+	version string,
 ) *Golang {
 	g := &Golang{}
 	if ctr == nil {
-		ctr = g.Base(DEFAULT_GO).Ctr
+		ctr = g.Base(version).Container
 	}
-	g.Ctr = ctr
+	g.Container = ctr
 
-	if proj != nil {
-		g.Proj = proj
+	if source != nil {
+		g.Container = g.Container.WithDirectory(MOUNT_PATH, source)
 	}
 
 	return g
@@ -67,11 +69,11 @@ func (g *Golang) Build(
 	}
 
 	if source != nil {
-		g = g.WithProject(source)
+		g = g.WithSource(source)
 	}
 
 	command := append([]string{"go", "build", "-o", OUT_DIR}, args...)
-	return g.prepare().
+	return g.Container.
 		WithEnvVariable("GOARCH", arch).
 		WithEnvVariable("GOOS", os).
 		WithExec(command).
@@ -116,10 +118,33 @@ func (g *Golang) Test(
 	args []string,
 ) (string, error) {
 	if source != nil {
-		g = g.WithProject(source)
+		g = g.WithSource(source)
 	}
 	command := append([]string{"go", "test"}, args...)
-	return g.prepare().WithExec(command).Stdout(ctx)
+	return g.Container.WithExec(command).Stdout(ctx)
+}
+
+// Format the Go project
+func (g *Golang) Fmt(
+	ctx context.Context,
+	// The Go source code to format
+	// +optional
+	source *dagger.Directory,
+	// Arguments to `go fmt`
+	// +optional
+	// +default "./..."
+	args []string,
+) (*Golang, error) {
+	if source != nil {
+		g = g.WithSource(source)
+	}
+	command := append([]string{"go", "fmt"}, args...)
+	c, err := g.Container.WithExec(command).Sync(ctx)
+	if err != nil {
+		return nil, err
+	}
+	g.Container = c
+	return g, err
 }
 
 // Lint the Go project
@@ -129,82 +154,64 @@ func (g *Golang) GolangciLint(
 	// +optional
 	source *dagger.Directory,
 ) (string, error) {
-	if source != nil {
-		g = g.WithProject(source)
-	}
-	return dag.Container().From(LINT_IMAGE).
-		WithMountedDirectory("/src", g.Proj).
-		WithWorkdir("/src").
-		WithExec([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}).
+	return g.lint(source, []string{}).
 		Stdout(ctx)
 }
 
+// Lint the Go project and apply fixes
+func (g *Golang) GolangciLintFix(
+	ctx context.Context,
+	// The Go source code to lint
+	// +optional
+	source *dagger.Directory,
+) (*dagger.Directory, error) {
+	done, err := g.lint(source, []string{"--fix"}).
+		Sync(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return done.Directory("/src"), nil
+}
+
+// Private lint helper
+func (g *Golang) lint(source *dagger.Directory, args []string) *dagger.Container {
+	if source == nil {
+		source = g.GetSource()
+	}
+	return dag.Container().From(LINT_IMAGE).
+		WithMountedDirectory("/src", source).
+		WithWorkdir("/src").
+		WithExec(append([]string{"golangci-lint", "run", "-v", "--timeout", "5m"}, args...))
+}
+
 // Sets up the Container with a golang image and cache volumes
-func (g *Golang) Base(version string) *Golang {
-	mod := dag.CacheVolume("gomodcache")
-	build := dag.CacheVolume("gobuildcache")
+func (g *Golang) Base(
+	// Golang image tag to use
+	// +default="1.24"
+	version string,
+) *Golang {
 	image := fmt.Sprintf("golang:%s", version)
-	c := dag.Container().
+	g.Container = dag.Container().
 		From(image).
-		WithMountedCache("/go/pkg/mod", mod).
-		WithMountedCache("/root/.cache/go-build", build)
-	g.Ctr = c
+		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomodcache")).
+		WithMountedCache("/root/.cache/go-build", dag.CacheVolume("gobuildcache"))
 	return g
 }
 
-// The go build container
-func (g *Golang) Container() *dagger.Container {
-	return g.Ctr
-}
-
-// The go project directory
-func (g *Golang) Project() *dagger.Directory {
-	return g.Ctr.Directory(PROJ_MOUNT)
-}
-
-// Specify the Project to use in the module
-func (g *Golang) WithProject(dir *dagger.Directory) *Golang {
-	g.Proj = dir
+// Specify the Source to use in the module
+func (g *Golang) WithSource(dir *dagger.Directory) *Golang {
+	g.Container = g.Container.WithDirectory(MOUNT_PATH, dir)
 	return g
+}
+
+// Get the current state of the source directory
+func (g *Golang) GetSource() *dagger.Directory {
+	return g.Container.Directory(MOUNT_PATH)
 }
 
 // Bring your own container
 func (g *Golang) WithContainer(ctr *dagger.Container) *Golang {
-	g.Ctr = ctr
+	g.Container = ctr
 	return g
-}
-
-// Build a remote git repo
-func (g *Golang) BuildRemote(
-	remote, ref, module string,
-	// +optional
-	arch string,
-	// +optional
-	platform string,
-) *dagger.Directory {
-	git := dag.Git(fmt.Sprintf("https://%s", remote)).
-		Branch(ref).
-		Tree()
-	g = g.WithProject(git)
-
-	if arch == "" {
-		arch = runtime.GOARCH
-	}
-	if platform == "" {
-		platform = runtime.GOOS
-	}
-	command := append([]string{"go", "build", "-o", "build/"}, module)
-	return g.prepare().
-		WithEnvVariable("GOARCH", arch).
-		WithEnvVariable("GOOS", platform).
-		WithExec(command).
-		Directory(fmt.Sprintf("%s/%s/", PROJ_MOUNT, "build"))
-}
-
-// Private func to check readiness and prepare the container for build/test/lint
-func (g *Golang) prepare() *dagger.Container {
-	c := g.Ctr.
-		WithDirectory(PROJ_MOUNT, g.Proj).
-		WithWorkdir(PROJ_MOUNT)
-	return c
 }
