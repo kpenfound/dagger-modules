@@ -195,13 +195,14 @@ func (g *Golang) Base(
 	g.Container = dag.Container().
 		From(image).
 		WithMountedCache("/go/pkg/mod", dag.CacheVolume("gomodcache")).
-		WithMountedCache("/root/.cache/go-build", dag.CacheVolume("gobuildcache"))
+		WithMountedCache("/root/.cache/go-build", dag.CacheVolume("gobuildcache")).
+		WithWorkdir(MOUNT_PATH)
 	return g
 }
 
 // Specify the Source to use in the module
-func (g *Golang) WithSource(dir *dagger.Directory) *Golang {
-	g.Container = g.Container.WithDirectory(MOUNT_PATH, dir)
+func (g *Golang) WithSource(source *dagger.Directory) *Golang {
+	g.Container = g.Container.WithDirectory(MOUNT_PATH, source)
 	return g
 }
 
