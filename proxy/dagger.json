@@ -1,6 +1,7 @@
 {
   "name": "proxy",
-  "engineVersion": "v0.15.1",
-  "sdk": "python",
-  "source": "."
+  "engineVersion": "v0.18.17",
+  "sdk": {
+    "source": "python"
+  }
 }
