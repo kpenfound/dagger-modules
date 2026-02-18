@@ -5,6 +5,8 @@ This module allows you to proxy any number of Dagger Services
 through a single Dagger Service on specified ports
 """
 
+from typing import Optional
+
 import dagger
 from dagger import dag, function, field, object_type
 
@@ -71,13 +73,13 @@ class Proxy:
         name: str,
         frontend: int,
         backend: int,
-        is_tcp: bool = False,
+        is_tcp: Optional[bool] = None,
     ) -> "Proxy":
         """Add a service to proxy"""
-        cfg = get_config(backend, name, frontend, is_tcp)
+        cfg = get_config(backend, name, frontend, is_tcp or False)
         conf_path = (
             f"/etc/nginx/stream.d/{name}.conf"
-            if is_tcp
+            if is_tcp or False
             else f"/etc/nginx/conf.d/{name}.conf"
         )
         self.ctr = (
@@ -93,7 +95,7 @@ class Proxy:
         return self.ctr.as_service(args=["nginx", "-g", "daemon off;"])
 
 
-def get_config(port: int, name: str, frontend: int, is_tcp: bool) -> str:
+def get_config(port: int, name: str, frontend: int, is_tcp: bool | None) -> str:
     if is_tcp:
         return f"""
     server {{
