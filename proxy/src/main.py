@@ -62,7 +62,7 @@ http {{
 class Proxy:
     """Forwards multiple services into a single service with multiple ports"""
 
-    ctr: dagger.Container = field(default=init)
+    ctr: dagger.Container = field(default=init, init=False)
 
     @function
     def with_service(
